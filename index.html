@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Ancient Civilizations — Parallel Timelines</title>
+<title>Rivers of Time — Civilizations in Parallel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -42,6 +42,14 @@
     backdrop-filter:blur(3px);
   }
   .title-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+  .collapse-btn{
+    margin-left:auto;align-self:center;
+    border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--gold-dim);
+    border-radius:16px;padding:5px 13px;font-size:11.5px;cursor:pointer;letter-spacing:.06em;
+    transition:.15s;white-space:nowrap;
+  }
+  .collapse-btn:hover{border-color:var(--gold);color:var(--gold)}
+  body.controls-hidden .controls{display:none}
   h1{
     font-family:'Cormorant Garamond',serif;
     font-weight:600;font-size:26px;letter-spacing:.02em;margin:0;
@@ -73,11 +81,14 @@
 
   /* ---------- Era readout ---------- */
   #era{
-    position:fixed;right:20px;top:118px;z-index:35;text-align:right;
+    position:fixed;right:14px;top:118px;z-index:36;text-align:right;
     pointer-events:none;transition:opacity .3s;
+    background:rgba(14,12,9,.72);backdrop-filter:blur(5px);
+    padding:7px 13px;border-radius:13px;border:1px solid var(--line-soft);
+    box-shadow:0 6px 22px rgba(0,0,0,.45);
   }
-  #era .yr{font-family:'Cormorant Garamond',serif;font-size:40px;color:var(--gold);line-height:1;text-shadow:0 2px 20px rgba(0,0,0,.6)}
-  #era .lbl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+  #era .yr{font-family:'Cormorant Garamond',serif;font-size:34px;color:var(--gold);line-height:1;text-shadow:0 2px 12px rgba(0,0,0,.7)}
+  #era .lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:3px;max-width:170px}
 
   /* ---------- Timeline scroll ---------- */
   #timeline{
@@ -165,7 +176,13 @@
     box-shadow:0 8px 30px rgba(0,0,0,.35);
   }
   .ev-card.in{opacity:1;transform:none}
-  #lanes.overview .ev-card{display:none}
+  /* Overview (3+ civilizations): compact image thumbnails so pictures stay visible */
+  #lanes.overview .ev-card{margin-left:12px;margin-right:6px;padding:5px 6px;border-radius:8px}
+  #lanes.overview .ev-ttl,#lanes.overview .ev-desc{display:none}
+  #lanes.overview .ev-yr{font-size:12px}
+  #lanes.overview .ev-img{height:62px;margin-top:4px}
+  #lanes.overview .ev-cap{display:none!important}
+  #lanes.overview .ev-dot{left:1px;width:9px;height:9px;top:-4px}
   .ev-yr{font-family:'Cormorant Garamond',serif;color:var(--gold);font-size:17px;font-weight:600;line-height:1}
   .ev-ttl{font-size:14px;font-weight:600;margin:4px 0 5px;color:var(--ink)}
   .ev-desc{font-size:12.5px;line-height:1.5;color:var(--muted);font-weight:300}
@@ -263,7 +280,8 @@
 
 <header>
   <div class="title-row">
-    <h1>Parallel Antiquity<span class="sub">civilizations across time</span></h1>
+    <h1>Rivers of Time<span class="sub">civilizations in parallel</span></h1>
+    <button id="collapseBtn" class="collapse-btn" title="Hide/show filters">Hide filters ▲</button>
   </div>
   <div class="controls">
     <div class="chip-wrap" id="chips"></div>
@@ -272,7 +290,7 @@
     <button class="btn" id="noneBtn">Clear</button>
     <div class="sep"></div>
     <label class="zoom">Zoom
-      <input type="range" id="zoom" min="0.45" max="3" step="0.05" value="0.9">
+      <input type="range" id="zoom" min="0.45" max="6" step="0.05" value="0.9">
     </label>
     <div class="sep"></div>
     <label class="toggle" title="On: real photos from Wikimedia (AI art as fallback). Off: AI-generated art only."><input type="checkbox" id="imgToggle" checked> Web photos</label>
@@ -309,8 +327,8 @@
   <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a>; AI-generated era art fills the gaps. Select 1–2 civilizations to compare closely.</footer>
 
 <div id="intro">
-  <h2 class="glow">Parallel Antiquity</h2>
-  <p>Nine civilizations, one shared river of time — from the first cities of Sumer to today.
+  <h2 class="glow">Rivers of Time</h2>
+  <p>Nine civilizations, one shared river of time — from the first cities of Sumer to the present day.
      Scroll to travel through the eras; toggle civilizations to compare who rose and fell together.</p>
   <button class="enter" id="enterBtn">Enter the timeline</button>
 </div>
@@ -518,6 +536,87 @@ const CIVS = [
       {y:1533,t:'Spanish conquest',wiki:'Spanish_conquest_of_the_Inca_Empire',d:'Pizarro captures the Inca capital, ending Andean independence.'}
     ]}
 ];
+
+/* ---- Modern continuation: each thread carried through to the present day ---- */
+const MODERN = {
+  meso:{ periods:[
+      {name:'Abbasid Caliphate',s:750,e:1258},{name:'Ottoman Iraq',s:1534,e:1918},{name:'Modern Iraq',s:1932,e:2025}],
+    events:[
+      {y:762,t:'Baghdad, seat of the Abbasids',wiki:'Baghdad',d:'The Abbasid Caliphate founds Baghdad, which becomes a world centre of science, translation and trade during the Islamic Golden Age.'},
+      {y:1258,t:'Mongol sack of Baghdad',wiki:'Siege_of_Baghdad_(1258)',d:'The Mongols destroy Baghdad and its House of Wisdom, ending the Abbasid Caliphate.'},
+      {y:1534,t:'Ottoman rule',wiki:'Ottoman_Iraq',d:'Mesopotamia becomes provinces of the Ottoman Empire for nearly four centuries.'},
+      {y:1932,t:'Kingdom of Iraq',wiki:'Kingdom_of_Iraq',d:'Modern Iraq gains independence, uniting the ancient lands of Mesopotamia as a nation-state.'},
+      {y:2003,t:'Iraq War',wiki:'Iraq_War',d:'A US-led invasion topples Saddam Hussein, opening a turbulent new chapter for the region.'}
+    ]},
+  egypt:{ periods:[
+      {name:'Roman & Byzantine',s:-30,e:641},{name:'Islamic Egypt',s:641,e:1517},{name:'Ottoman Egypt',s:1517,e:1867},{name:'Modern Egypt',s:1922,e:2025}],
+    events:[
+      {y:641,t:'Muslim conquest of Egypt',wiki:'Muslim_conquest_of_Egypt',d:'Arab armies take Egypt from Byzantium; over centuries Arabic and Islam reshape the Nile Valley.'},
+      {y:969,t:'Founding of Cairo',wiki:'Cairo',d:'The Fatimids found Cairo and al-Azhar, one of the world’s oldest universities.'},
+      {y:1869,t:'The Suez Canal opens',wiki:'Suez_Canal',d:'The canal joins the Mediterranean and Red Sea, making Egypt a hinge of global trade.'},
+      {y:1922,t:'Independent Egypt',wiki:'Kingdom_of_Egypt',d:'Egypt regains independence from Britain; the modern Egyptian state emerges.'},
+      {y:2011,t:'Egyptian revolution',wiki:'Egyptian_revolution_of_2011',d:'Mass protests in Tahrir Square end Hosni Mubarak’s 30-year rule.'}
+    ]},
+  indus:{ periods:[
+      {name:'Maurya',s:-322,e:-185},{name:'Gupta',s:320,e:550},{name:'Delhi Sultanate',s:1206,e:1526},
+      {name:'Mughal Empire',s:1526,e:1857},{name:'British Raj',s:1858,e:1947},{name:'Republic of India',s:1947,e:2025}],
+    events:[
+      {y:-268,t:'Ashoka & the Maurya Empire',wiki:'Ashoka',d:'Emperor Ashoka unites most of the subcontinent and spreads Buddhism after renouncing war.'},
+      {y:320,t:'Gupta golden age',wiki:'Gupta_Empire',d:'A flowering of mathematics (the concept of zero), astronomy, art and Sanskrit literature.'},
+      {y:1526,t:'The Mughal Empire',wiki:'Mughal_Empire',d:'Babur founds the Mughal Empire, which will rule much of South Asia for three centuries.'},
+      {y:1632,t:'The Taj Mahal',wiki:'Taj_Mahal',d:'Shah Jahan builds the Taj Mahal in Agra as a mausoleum for his wife Mumtaz Mahal.'},
+      {y:1858,t:'The British Raj',wiki:'British_Raj',d:'The British Crown takes direct rule over India after the 1857 rebellion.'},
+      {y:1947,t:'Independence & Partition',wiki:'Partition_of_India',d:'India and Pakistan gain independence, birthing the world’s largest democracy.'}
+    ]},
+  china:{ periods:[
+      {name:'Republic of China',s:1912,e:1949},{name:'People’s Republic',s:1949,e:2025}],
+    events:[
+      {y:1912,t:'End of imperial China',wiki:'Xinhai_Revolution',d:'The Xinhai Revolution overthrows the Qing, ending over two thousand years of dynastic rule.'},
+      {y:1949,t:'People’s Republic founded',wiki:'Chinese_Communist_Revolution',d:'Mao Zedong proclaims the People’s Republic of China after decades of war and revolution.'},
+      {y:1978,t:'Reform and opening-up',wiki:'Chinese_economic_reform',d:'Deng Xiaoping’s reforms launch China’s transformation into an economic superpower.'},
+      {y:2008,t:'Beijing Olympics',wiki:'2008_Summer_Olympics',d:'China stages the Summer Olympics, a symbol of its return to the global stage.'}
+    ]},
+  greece:{ periods:[
+      {name:'Byzantine Empire',s:330,e:1453},{name:'Ottoman Greece',s:1453,e:1821},{name:'Modern Greece',s:1830,e:2025}],
+    events:[
+      {y:330,t:'Constantinople & Byzantium',wiki:'Byzantine_Empire',d:'Constantine founds Constantinople; the Greek-speaking Byzantine Empire preserves classical learning for a thousand years.'},
+      {y:1453,t:'Fall of Constantinople',wiki:'Fall_of_Constantinople',d:'The Ottomans take Constantinople, ending the Byzantine Empire and the Middle Ages.'},
+      {y:1821,t:'Greek War of Independence',wiki:'Greek_War_of_Independence',d:'Greece wins independence from the Ottomans, reviving the classical ideal of a Greek nation.'},
+      {y:2004,t:'Athens Olympics',wiki:'2004_Summer_Olympics',d:'The Olympic Games return to their birthplace in modern Athens.'}
+    ]},
+  rome:{ periods:[
+      {name:'Papal & Medieval Italy',s:476,e:1400},{name:'Renaissance',s:1400,e:1600},{name:'Kingdom of Italy',s:1861,e:1946},{name:'Italian Republic',s:1946,e:2025}],
+    events:[
+      {y:800,t:'Charlemagne crowned in Rome',wiki:'Charlemagne',d:'The Pope crowns Charlemagne emperor in Rome, reviving the imperial idea in the West.'},
+      {y:1400,t:'The Italian Renaissance',wiki:'Italian_Renaissance',d:'Florence, Rome and Venice ignite a rebirth of art, science and classical learning.'},
+      {y:1508,t:'The Sistine Chapel ceiling',wiki:'Sistine_Chapel_ceiling',d:'Michelangelo paints the Sistine Chapel ceiling in the Vatican — a summit of Renaissance art.'},
+      {y:1861,t:'Unification of Italy',wiki:'Italian_unification',d:'The many states of the peninsula unite into the Kingdom of Italy, with Rome its capital.'},
+      {y:1929,t:'Vatican City',wiki:'Vatican_City',d:'The Lateran Treaty creates the independent Vatican City, heir to Rome’s spiritual authority.'}
+    ]},
+  persia:{ periods:[
+      {name:'Islamic Persia',s:651,e:1501},{name:'Safavid Empire',s:1501,e:1736},{name:'Qajar dynasty',s:1789,e:1925},{name:'Modern Iran',s:1925,e:2025}],
+    events:[
+      {y:1010,t:'Ferdowsi’s Shahnameh',wiki:'Shahnameh',d:'Ferdowsi completes the Persian national epic, preserving the language and legends of Iran.'},
+      {y:1501,t:'The Safavid Empire',wiki:'Safavid_dynasty',d:'The Safavids reunite Iran and make Shia Islam the state religion, shaping modern Iranian identity.'},
+      {y:1971,t:'The Pahlavi era',wiki:'Pahlavi_dynasty',d:'Iran celebrates 2,500 years of monarchy amid rapid modernization under the Shah.'},
+      {y:1979,t:'Iranian Revolution',wiki:'Iranian_Revolution',d:'The revolution overthrows the monarchy and founds the Islamic Republic of Iran.'}
+    ]},
+  meso_am:{ periods:[
+      {name:'New Spain (colonial)',s:1521,e:1821},{name:'Modern Mexico',s:1821,e:2025}],
+    events:[
+      {y:1810,t:'Mexican War of Independence',wiki:'Mexican_War_of_Independence',d:'Mexico rises against Spain, winning independence in 1821 after three centuries of colonial rule.'},
+      {y:1910,t:'Mexican Revolution',wiki:'Mexican_Revolution',d:'A decade of revolution reshapes Mexico and forges its modern national identity.'},
+      {y:1968,t:'Modern Mexico City',wiki:'Mexico_City',d:'Built atop Aztec Tenochtitlan, Mexico City grows into one of the world’s great metropolises.'}
+    ]},
+  andes:{ periods:[
+      {name:'Viceroyalty of Peru',s:1542,e:1824},{name:'Modern Peru',s:1821,e:2025}],
+    events:[
+      {y:1781,t:'Túpac Amaru II rebellion',wiki:'Túpac_Amaru_II',d:'A descendant of the Inca leads a great uprising against Spanish colonial rule.'},
+      {y:1821,t:'Peruvian independence',wiki:'Peruvian_War_of_Independence',d:'Peru wins independence from Spain, becoming a sovereign Andean republic.'},
+      {y:1911,t:'Machu Picchu revealed',wiki:'Machu_Picchu',d:'Hiram Bingham brings the Inca citadel of Machu Picchu to global attention.'}
+    ]}
+};
+CIVS.forEach(c=>{ const m=MODERN[c.id]; if(m){ c.periods=c.periods.concat(m.periods); c.events=c.events.concat(m.events); } });
 
 /* ============================================================ STATE */
 const T_MIN = -4000, T_MAX = 2025;
@@ -889,6 +988,12 @@ document.getElementById('enterBtn').onclick=()=>{
 };
 
 /* ---------------- Init ---------------- */
+document.getElementById('collapseBtn').addEventListener('click', ()=>{
+  const hidden = document.body.classList.toggle('controls-hidden');
+  document.getElementById('collapseBtn').textContent = hidden ? 'Filters ▼' : 'Hide filters ▲';
+  layout(); updateEra(); requestAnimationFrame(checkReveal);
+});
+
 layout();
 buildRuler();
 buildLanes();
