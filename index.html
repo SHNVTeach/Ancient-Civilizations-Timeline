@@ -43,7 +43,7 @@
   }
   .title-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
   .collapse-btn{
-    margin-left:auto;align-self:center;
+    margin-left:12px;align-self:center;
     border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--gold-dim);
     border-radius:16px;padding:5px 13px;font-size:11.5px;cursor:pointer;letter-spacing:.06em;
     transition:.15s;white-space:nowrap;
@@ -79,16 +79,14 @@
   .toggle input{accent-color:var(--gold)}
   .sep{width:1px;height:22px;background:var(--line-soft)}
 
-  /* ---------- Era readout ---------- */
+  /* ---------- Era readout (lives in the header, never over content) ---------- */
   #era{
-    position:fixed;right:14px;top:118px;z-index:36;text-align:right;
-    pointer-events:none;transition:opacity .3s;
-    background:rgba(14,12,9,.72);backdrop-filter:blur(5px);
-    padding:7px 13px;border-radius:13px;border:1px solid var(--line-soft);
-    box-shadow:0 6px 22px rgba(0,0,0,.45);
+    margin-left:auto;align-self:center;display:flex;align-items:baseline;gap:8px;
+    pointer-events:none;
   }
-  #era .yr{font-family:'Cormorant Garamond',serif;font-size:34px;color:var(--gold);line-height:1;text-shadow:0 2px 12px rgba(0,0,0,.7)}
-  #era .lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:3px;max-width:170px}
+  #era .yr{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);line-height:1;white-space:nowrap}
+  #era .lbl{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+    max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
   /* ---------- Timeline scroll ---------- */
   #timeline{
@@ -148,17 +146,17 @@
   /* spine */
   .spine{position:absolute;top:0;bottom:0;left:26px;width:2px;background:linear-gradient(180deg,transparent, var(--line) 4%, var(--line) 96%, transparent)}
 
-  /* period band */
+  /* period band — a slim colored rail + wrapping label, not a hollow box */
   .period{
-    position:absolute;left:14px;right:8px;border-radius:8px;overflow:hidden;
-    border:1px solid rgba(255,255,255,.04);
+    position:absolute;left:14px;right:8px;border-radius:6px;
   }
+  .period .p-rail{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:3px}
   .period .p-lbl{
-    position:absolute;top:6px;left:12px;right:8px;font-size:11px;letter-spacing:.05em;
-    color:var(--ink);opacity:.85;font-weight:500;
-    text-transform:uppercase;
+    position:absolute;top:4px;left:13px;right:6px;font-size:10.5px;letter-spacing:.03em;
+    color:var(--ink);opacity:.92;font-weight:600;line-height:1.15;
+    text-transform:uppercase;white-space:normal;
   }
-  #lanes.overview .period .p-lbl{font-size:9.5px;left:8px}
+  #lanes.overview .period .p-lbl{font-size:9px;left:11px;letter-spacing:0}
 
   /* event */
   .event{position:absolute;left:0;right:0}
@@ -186,11 +184,16 @@
   .ev-yr{font-family:'Cormorant Garamond',serif;color:var(--gold);font-size:17px;font-weight:600;line-height:1}
   .ev-ttl{font-size:14px;font-weight:600;margin:4px 0 5px;color:var(--ink)}
   .ev-desc{font-size:12.5px;line-height:1.5;color:var(--muted);font-weight:300}
+  /* image always reserves its box so card heights are stable for collision packing */
   .ev-img{
-    width:100%;height:150px;object-fit:cover;border-radius:8px;margin-top:10px;display:none;
-    background:#0d0b09;border:1px solid var(--line-soft);
+    width:100%;height:150px;object-fit:cover;border-radius:8px;margin-top:10px;display:block;
+    background:#0d0b09;border:1px solid var(--line-soft);opacity:0;transition:opacity .5s ease;
   }
-  .ev-img.show{display:block;animation:fade .6s ease}
+  .ev-img.show{opacity:1}
+  /* connector drawn when a card is pushed down off its true date by collision packing */
+  .ev-conn{position:absolute;left:26px;top:0;width:2px;display:none;z-index:1;
+    background:linear-gradient(180deg, var(--line), transparent)}
+  #lanes.overview .ev-conn{left:5px}
   .ev-cap{font-size:10px;color:var(--gold-dim);margin-top:5px;display:none}
   .ev-cap.show{display:block}
   @keyframes fade{from{opacity:0}to{opacity:1}}
@@ -255,9 +258,8 @@
     .chip{font-size:12px;padding:5px 10px}
     .sep{display:none}
     .zoom{font-size:11px}
-    #era{right:12px}
-    #era .yr{font-size:28px}
-    #era .lbl{font-size:9.5px;letter-spacing:.14em}
+    #era .yr{font-size:18px}
+    #era .lbl{max-width:120px;letter-spacing:.08em}
     #stage{padding:0 12px 120px}
     .lane-head .nm{font-size:16px}
     .lane-head .rg{font-size:9.5px}
@@ -281,6 +283,7 @@
 <header>
   <div class="title-row">
     <h1>Rivers of Time<span class="sub">civilizations in parallel</span></h1>
+    <div id="era"><span class="yr">—</span><span class="lbl"></span></div>
     <button id="collapseBtn" class="collapse-btn" title="Hide/show filters">Hide filters ▲</button>
   </div>
   <div class="controls">
@@ -290,14 +293,13 @@
     <button class="btn" id="noneBtn">Clear</button>
     <div class="sep"></div>
     <label class="zoom">Zoom
-      <input type="range" id="zoom" min="0.45" max="6" step="0.05" value="0.9">
+      <input type="range" id="zoom" min="0.45" max="6" step="0.05" value="0.7">
     </label>
+    <button class="btn" id="spaceBtn" title="Toggle even spacing vs spacing by number of years">Even spacing</button>
     <div class="sep"></div>
     <label class="toggle" title="On: real photos from Wikimedia (AI art as fallback). Off: AI-generated art only."><input type="checkbox" id="imgToggle" checked> Web photos</label>
   </div>
 </header>
-
-<div id="era"><div class="yr">—</div><div class="lbl">era</div></div>
 
 <div id="timeline">
   <div id="stage">
@@ -323,8 +325,8 @@
   </div>
 </div>
 
-<footer>Time axis is linear: 4000&nbsp;BCE → today. Photos fetched live from
-  <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a>; AI-generated era art fills the gaps. Select 1–2 civilizations to compare closely.</footer>
+<footer>4000&nbsp;BCE → today · spacing: <b>Even</b> (toggle “By years” for true‑linear time). Photos from
+  <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a>; AI art fills gaps. Select 1–2 civilizations to compare closely.</footer>
 
 <div id="intro">
   <h2 class="glow">Rivers of Time</h2>
@@ -620,7 +622,9 @@ CIVS.forEach(c=>{ const m=MODERN[c.id]; if(m){ c.periods=c.periods.concat(m.peri
 
 /* ============================================================ STATE */
 const T_MIN = -4000, T_MAX = 2025;
-let pxPerYear = 0.9;
+let scaleMul = 0.7;      // global vertical zoom multiplier
+let evenMode = true;     // true = adaptive even spacing, false = proportional (by years)
+let anchors=[], segH=[], cum=[];   // shared piecewise-linear time scale
 let selected = new Set(CIVS.map(c=>c.id));
 let imagesOn = true;
 const imgCache = new Map();
@@ -635,7 +639,6 @@ function layout(){
   const h = document.querySelector('header').offsetHeight;
   topPad = h + 12;
   document.documentElement.style.setProperty('--top-pad', topPad+'px');
-  document.getElementById('era').style.top = (h + 6) + 'px';
 }
 
 function fmtYear(y){
@@ -644,8 +647,47 @@ function fmtYear(y){
   if(y===0) return '1 CE';
   return y+' CE';
 }
-function yPos(year){ return (year - T_MIN) * pxPerYear; }
-function totalHeight(){ return (T_MAX - T_MIN) * pxPerYear; }
+/* ---------- Adaptive shared time scale ----------
+   All lanes share one monotonic year→pixel map, so "same row = same year" holds.
+   Even mode gives every gap between anchor years a similar height (kills dead space,
+   spreads clusters); Proportional mode makes height ∝ years (true linear). */
+function clampYr(y){ return Math.max(T_MIN, Math.min(T_MAX, y)); }
+function buildScale(){
+  const set=new Set([T_MIN,T_MAX]);
+  CIVS.forEach(c=>{
+    c.periods.forEach(p=>{ set.add(clampYr(p.s)); set.add(clampYr(p.e)); });
+    c.events.forEach(e=>{ set.add(clampYr(e.y)); });
+  });
+  anchors=[...set].sort((a,b)=>a-b);
+  segH=[];
+  for(let i=0;i<anchors.length-1;i++){
+    const gap=anchors[i+1]-anchors[i];
+    segH.push( evenMode ? (46 + 9*Math.log1p(gap)) : gap );  // even: floor + gentle growth
+  }
+  cum=[0];
+  for(let i=0;i<segH.length;i++) cum.push(cum[i]+segH[i]);
+}
+function segIndex(year){ // largest k with anchors[k] <= year
+  let a=0,b=anchors.length-1,k=0;
+  while(a<=b){ const m=(a+b)>>1; if(anchors[m]<=year){k=m;a=m+1;} else b=m-1; }
+  return Math.min(k, anchors.length-2);
+}
+function yPos(year){
+  year=clampYr(year);
+  const k=segIndex(year);
+  const frac=(year-anchors[k])/(anchors[k+1]-anchors[k]);
+  return (cum[k] + frac*segH[k]) * scaleMul;
+}
+function yearAt(y){   // inverse of yPos
+  const t=y/scaleMul, last=cum[cum.length-1];
+  if(t<=0) return T_MIN; if(t>=last) return T_MAX;
+  let a=0,b=cum.length-1,k=0;
+  while(a<=b){ const m=(a+b)>>1; if(cum[m]<=t){k=m;a=m+1;} else b=m-1; }
+  k=Math.min(k, segH.length-1);
+  const frac=(t-cum[k])/segH[k];
+  return anchors[k] + frac*(anchors[k+1]-anchors[k]);
+}
+function totalHeight(){ return cum[cum.length-1]*scaleMul; }
 
 /* ---------------- Build chips ---------------- */
 const chipsEl = document.getElementById('chips');
@@ -683,8 +725,8 @@ function applySelection(){
   lanesEl.classList.toggle('focus', n>0 && n<=2);
   lanesEl.classList.toggle('overview', n>2);
   lanesEl.classList.toggle('solo', n===1);
-  // trigger reveal recheck
-  requestAnimationFrame(checkReveal);
+  // card widths/heights changed with the mode → re-pack then reveal
+  requestAnimationFrame(()=>{ resolveCollisions(); checkReveal(); });
 }
 
 /* ---------------- Build ruler ---------------- */
@@ -697,7 +739,7 @@ function buildRuler(){
     const t=document.createElement('div');
     t.className='tick'+(major?' major':'');
     t.style.top = yPos(y)+'px';
-    if(major || pxPerYear>1.1){
+    if(major){
       const lbl=document.createElement('div');
       lbl.className='t-lbl';
       lbl.textContent = fmtYear(y);
@@ -735,15 +777,17 @@ function buildLanes(){
     const spine=document.createElement('div');
     spine.className='spine'; body.appendChild(spine);
 
-    // periods
-    c.periods.forEach(p=>{
+    // periods — slim colored rail + wrapping label (no hollow boxes)
+    c.periods.forEach((p,i)=>{
       const s=Math.max(p.s,T_MIN), e=Math.min(p.e,T_MAX);
+      const h=yPos(e)-yPos(s);
       const band=document.createElement('div');
       band.className='period';
       band.style.top=yPos(s)+'px';
-      band.style.height=(yPos(e)-yPos(s))+'px';
-      band.style.background=`linear-gradient(180deg, ${hex(c.color,.13)}, ${hex(c.color,.05)})`;
-      band.innerHTML=`<div class="p-lbl">${p.name}</div>`;
+      band.style.height=h+'px';
+      band.style.background=`linear-gradient(90deg, ${hex(c.color,.10)}, ${hex(c.color,.02)} 45%, transparent)`;
+      band.innerHTML=`<div class="p-rail" style="background:${hex(c.color, i%2?0.55:0.85)}"></div>`+
+                     `<div class="p-lbl" style="display:${h<24?'none':''}">${p.name}</div>`;
       body.appendChild(band);
     });
 
@@ -893,7 +937,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') drawer.classList.r
 const eraYr=document.querySelector('#era .yr'), eraLbl=document.querySelector('#era .lbl');
 function updateEra(){
   const centerY = timeline.scrollTop + timeline.clientHeight*0.42 - topPad;
-  const year = T_MIN + centerY/pxPerYear;
+  const year = yearAt(centerY);
   eraYr.textContent = fmtYear(year);
   // find an active period among selected civs
   let label='';
@@ -914,12 +958,24 @@ timeline.addEventListener('scroll',()=>{
 /* ---------------- Zoom ---------------- */
 const zoomEl=document.getElementById('zoom');
 zoomEl.addEventListener('input',()=>{
-  const centerYear = T_MIN + (timeline.scrollTop + timeline.clientHeight/2 -topPad)/pxPerYear;
-  pxPerYear=parseFloat(zoomEl.value);
+  const centerYear = yearAt(timeline.scrollTop + timeline.clientHeight/2 - topPad);
+  scaleMul=parseFloat(zoomEl.value);
   rebuildGeometry();
   timeline.scrollTop = yPos(centerYear) - timeline.clientHeight/2 + topPad;
   checkReveal(); updateEra();
 });
+
+// Even ↔ Proportional spacing toggle
+document.getElementById('spaceBtn').addEventListener('click',()=>{
+  const centerYear = yearAt(timeline.scrollTop + timeline.clientHeight/2 - topPad);
+  evenMode=!evenMode;
+  document.getElementById('spaceBtn').textContent = evenMode ? 'Even spacing' : 'By years';
+  buildScale();
+  rebuildGeometry();
+  timeline.scrollTop = yPos(centerYear) - timeline.clientHeight/2 + topPad;
+  checkReveal(); updateEra();
+});
+
 function rebuildGeometry(){
   buildRuler();
   const h=totalHeight()+'px';
@@ -930,11 +986,42 @@ function rebuildGeometry(){
     const bands=body.querySelectorAll('.period');
     c.periods.forEach((p,i)=>{
       const s=Math.max(p.s,T_MIN),e=Math.min(p.e,T_MAX);
+      const bh=yPos(e)-yPos(s);
       bands[i].style.top=yPos(s)+'px';
-      bands[i].style.height=(yPos(e)-yPos(s))+'px';
+      bands[i].style.height=bh+'px';
+      const lbl=bands[i].querySelector('.p-lbl'); if(lbl) lbl.style.display = bh<24?'none':'';
     });
     const evs=body.querySelectorAll('.event');
     c.events.forEach((ev,i)=>{ evs[i].style.top=yPos(ev.y)+'px'; });
+  });
+  requestAnimationFrame(resolveCollisions);
+}
+
+/* ---------------- Collision packing (residual same-time overlaps) ----------------
+   Cards that would overlap in a lane are pushed down off their true date, with a
+   connector back to the dot (which stays on the real year). */
+function resolveCollisions(){
+  const GAP=8;
+  CIVS.forEach(c=>{
+    const lane=document.getElementById('lane-'+c.id);
+    if(!lane || lane.classList.contains('hidden')) return;
+    const events=[...lane.querySelectorAll('.event')]
+      .sort((a,b)=>parseFloat(a.style.top)-parseFloat(b.style.top));
+    let prevBottom=-1e9;
+    events.forEach(wrap=>{
+      const card=wrap.querySelector('.ev-card');
+      const natTop=parseFloat(wrap.style.top)||0;
+      const hgt=card.offsetHeight||60;
+      let shift=0;
+      if(natTop < prevBottom+GAP) shift=(prevBottom+GAP)-natTop;
+      card.style.transform = shift>0 ? `translateY(${shift}px)` : '';
+      let conn=wrap.querySelector('.ev-conn');
+      if(shift>4){
+        if(!conn){ conn=document.createElement('div'); conn.className='ev-conn'; wrap.insertBefore(conn, wrap.firstChild); }
+        conn.style.height=shift+'px'; conn.style.display='block';
+      } else if(conn){ conn.style.display='none'; }
+      prevBottom = natTop + shift + hgt;
+    });
   });
 }
 
@@ -995,14 +1082,16 @@ document.getElementById('collapseBtn').addEventListener('click', ()=>{
 });
 
 layout();
+buildScale();
 buildRuler();
 buildLanes();
 applySelection();
 updateEra();
-setTimeout(checkReveal,300);
+requestAnimationFrame(resolveCollisions);
+setTimeout(()=>{ resolveCollisions(); checkReveal(); },300);
 let rz;
-window.addEventListener('resize',()=>{ layout(); updateEra(); clearTimeout(rz); rz=setTimeout(checkReveal,120); });
-window.addEventListener('orientationchange',()=>{ setTimeout(()=>{ layout(); updateEra(); checkReveal(); },200); });
+window.addEventListener('resize',()=>{ layout(); updateEra(); clearTimeout(rz); rz=setTimeout(()=>{ resolveCollisions(); checkReveal(); },140); });
+window.addEventListener('orientationchange',()=>{ setTimeout(()=>{ layout(); updateEra(); resolveCollisions(); checkReveal(); },200); });
 </script>
 </body>
 </html>
