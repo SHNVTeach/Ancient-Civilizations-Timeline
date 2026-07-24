@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ancient Civilizations — Parallel Timelines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#100e0b;
+    --bg2:#171310;
+    --panel:#1c1712;
+    --panel2:#221b15;
+    --gold:#e8c05a;
+    --gold-dim:#b7954a;
+    --ink:#efe6d4;
+    --muted:#9a8f7c;
+    --line:rgba(232,192,90,.22);
+    --line-soft:rgba(232,192,90,.10);
+    --head-h:60px;
+    --ruler-w:78px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:radial-gradient(120% 80% at 50% -10%, #1e1812 0%, var(--bg) 60%);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    overflow:hidden;
+  }
+  #bg{position:fixed;inset:0;z-index:0;display:block}
+  a{color:var(--gold);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ---------- Top bar ---------- */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:40;
+    background:linear-gradient(180deg, rgba(16,14,11,.96), rgba(16,14,11,.80) 70%, rgba(16,14,11,0));
+    padding:14px 22px 26px;
+    backdrop-filter:blur(3px);
+  }
+  .title-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+  h1{
+    font-family:'Cormorant Garamond',serif;
+    font-weight:600;font-size:26px;letter-spacing:.02em;margin:0;
+    color:var(--gold);
+  }
+  h1 .sub{color:var(--muted);font-size:14px;font-family:'Inter';font-weight:300;letter-spacing:.14em;text-transform:uppercase;margin-left:6px}
+  .controls{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:12px}
+  .chip-wrap{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+  .chip{
+    display:inline-flex;align-items:center;gap:7px;
+    border:1px solid var(--line);border-radius:20px;
+    padding:5px 12px 5px 9px;font-size:12.5px;cursor:pointer;
+    color:var(--muted);background:rgba(255,255,255,.02);
+    transition:all .18s ease;user-select:none;white-space:nowrap;
+  }
+  .chip .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 2px rgba(0,0,0,.35) inset}
+  .chip:hover{border-color:var(--gold-dim);color:var(--ink)}
+  .chip.on{color:#160f06;font-weight:600;border-color:transparent}
+  .btn{
+    border:1px solid var(--line);background:rgba(255,255,255,.02);color:var(--muted);
+    border-radius:8px;padding:6px 11px;font-size:12px;cursor:pointer;transition:.15s;letter-spacing:.03em;
+  }
+  .btn:hover{border-color:var(--gold-dim);color:var(--ink)}
+  .zoom{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:12px}
+  .zoom input{accent-color:var(--gold);cursor:pointer}
+  .toggle{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px;cursor:pointer;user-select:none}
+  .toggle input{accent-color:var(--gold)}
+  .sep{width:1px;height:22px;background:var(--line-soft)}
+
+  /* ---------- Era readout ---------- */
+  #era{
+    position:fixed;right:20px;top:118px;z-index:35;text-align:right;
+    pointer-events:none;transition:opacity .3s;
+  }
+  #era .yr{font-family:'Cormorant Garamond',serif;font-size:40px;color:var(--gold);line-height:1;text-shadow:0 2px 20px rgba(0,0,0,.6)}
+  #era .lbl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+
+  /* ---------- Timeline scroll ---------- */
+  #timeline{
+    position:absolute;inset:0;z-index:10;
+    overflow:auto;-webkit-overflow-scrolling:touch;
+    padding-top:var(--top-pad,150px);
+    scroll-behavior:smooth;
+  }
+  #timeline::-webkit-scrollbar{width:11px;height:11px}
+  #timeline::-webkit-scrollbar-thumb{background:rgba(232,192,90,.3);border-radius:8px}
+  #timeline::-webkit-scrollbar-track{background:transparent}
+
+  #stage{display:flex;align-items:flex-start;min-width:min-content;padding:0 26px 160px}
+
+  /* Ruler */
+  #ruler{
+    position:sticky;left:0;z-index:20;flex:0 0 var(--ruler-w);
+    align-self:stretch;
+  }
+  #ruler .inner{position:relative;width:100%}
+  .tick{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--line-soft)}
+  .tick.major{border-top:1px solid var(--line)}
+  .tick .t-lbl{
+    position:absolute;right:8px;top:-8px;font-size:11px;color:var(--gold-dim);
+    font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
+  .tick.major .t-lbl{color:var(--gold);font-size:12px;font-weight:500}
+  #nowline{position:absolute;left:0;right:0;border-top:1px dashed rgba(232,192,90,.5)}
+  #nowline .t-lbl{position:absolute;right:8px;top:-8px;font-size:11px;color:var(--gold)}
+
+  /* Lanes */
+  #lanes{display:flex;gap:0;align-items:flex-start;position:relative}
+  .lane{
+    position:relative;flex:1 1 0;transition:flex-basis .4s ease, opacity .35s, width .4s;
+    border-left:1px solid var(--line-soft);
+  }
+  .lane.hidden{display:none}
+  #lanes.overview .lane{min-width:120px;max-width:170px}
+  #lanes.focus .lane{min-width:360px}
+  #lanes.focus.solo .lane{min-width:520px}
+
+  .lane-head{
+    position:sticky;top:0;z-index:15;height:var(--head-h);
+    display:flex;flex-direction:column;justify-content:center;gap:2px;
+    padding:0 14px;overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  .lane-head .art{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.42;z-index:0}
+  .lane-head .veil{position:absolute;inset:0;z-index:1;
+    background:linear-gradient(180deg, rgba(16,14,11,.55), rgba(16,14,11,.82));}
+  .lane-head .nm{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;line-height:1.05;position:relative;z-index:2;text-shadow:0 1px 8px rgba(0,0,0,.8)}
+  .lane-head .rg{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);opacity:.85;position:relative;z-index:2;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+  .lane-head .accent{position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:2px;z-index:3}
+
+  .lane-body{position:relative;margin-top:6px}
+
+  /* spine */
+  .spine{position:absolute;top:0;bottom:0;left:26px;width:2px;background:linear-gradient(180deg,transparent, var(--line) 4%, var(--line) 96%, transparent)}
+
+  /* period band */
+  .period{
+    position:absolute;left:14px;right:8px;border-radius:8px;overflow:hidden;
+    border:1px solid rgba(255,255,255,.04);
+  }
+  .period .p-lbl{
+    position:absolute;top:6px;left:12px;right:8px;font-size:11px;letter-spacing:.05em;
+    color:var(--ink);opacity:.85;font-weight:500;
+    text-transform:uppercase;
+  }
+  #lanes.overview .period .p-lbl{font-size:9.5px;left:8px}
+
+  /* event */
+  .event{position:absolute;left:0;right:0}
+  .ev-dot{
+    position:absolute;left:20px;width:14px;height:14px;border-radius:50%;
+    border:2px solid var(--bg);cursor:pointer;transition:transform .15s, box-shadow .15s;z-index:3;
+    top:-7px;
+  }
+  .ev-dot:hover{transform:scale(1.35)}
+  .ev-card{
+    margin-left:52px;margin-right:10px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line-soft);border-radius:11px;padding:12px 14px;
+    opacity:0;transform:translateY(14px);transition:opacity .5s ease, transform .5s ease;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  .ev-card.in{opacity:1;transform:none}
+  #lanes.overview .ev-card{display:none}
+  .ev-yr{font-family:'Cormorant Garamond',serif;color:var(--gold);font-size:17px;font-weight:600;line-height:1}
+  .ev-ttl{font-size:14px;font-weight:600;margin:4px 0 5px;color:var(--ink)}
+  .ev-desc{font-size:12.5px;line-height:1.5;color:var(--muted);font-weight:300}
+  .ev-img{
+    width:100%;height:150px;object-fit:cover;border-radius:8px;margin-top:10px;display:none;
+    background:#0d0b09;border:1px solid var(--line-soft);
+  }
+  .ev-img.show{display:block;animation:fade .6s ease}
+  .ev-cap{font-size:10px;color:var(--gold-dim);margin-top:5px;display:none}
+  .ev-cap.show{display:block}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+
+  /* overview hover tooltip */
+  #tip{
+    position:fixed;z-index:60;pointer-events:none;opacity:0;transition:opacity .12s;
+    background:rgba(20,16,12,.97);border:1px solid var(--line);border-radius:8px;
+    padding:8px 11px;max-width:240px;box-shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  #tip .ty{color:var(--gold);font-size:12px;font-weight:600;font-family:'Cormorant Garamond',serif}
+  #tip .tt{font-size:12px;color:var(--ink);margin-top:2px}
+
+  /* detail drawer */
+  #drawer{
+    position:fixed;top:0;right:0;bottom:0;width:min(420px,92vw);z-index:70;
+    background:linear-gradient(180deg,#1a1510,#120f0b);border-left:1px solid var(--line);
+    transform:translateX(102%);transition:transform .38s cubic-bezier(.6,.02,.2,1);
+    box-shadow:-20px 0 60px rgba(0,0,0,.5);display:flex;flex-direction:column;
+  }
+  #drawer.open{transform:none}
+  #drawer .d-top{padding:22px 24px 14px;border-bottom:1px solid var(--line-soft);position:relative}
+  #drawer .d-close{position:absolute;top:16px;right:18px;cursor:pointer;color:var(--muted);font-size:22px;line-height:1}
+  #drawer .d-close:hover{color:var(--gold)}
+  #drawer .d-civ{font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px}
+  #drawer .d-yr{font-family:'Cormorant Garamond',serif;font-size:34px;color:var(--gold);line-height:1}
+  #drawer .d-ttl{font-size:18px;font-weight:600;margin-top:6px}
+  #drawer .d-body{padding:20px 24px;overflow:auto;flex:1}
+  #drawer .d-img{width:100%;height:210px;object-fit:cover;border-radius:10px;background:#0d0b09;border:1px solid var(--line-soft);margin-bottom:14px}
+  #drawer .d-desc{font-size:14px;line-height:1.65;color:var(--ink);font-weight:300}
+  #drawer .d-cap{font-size:11px;color:var(--muted);margin-top:14px}
+  #drawer .d-loading{font-size:12px;color:var(--muted);font-style:italic}
+
+  footer{
+    position:fixed;bottom:0;left:0;right:0;z-index:30;pointer-events:none;
+    text-align:center;font-size:11px;color:var(--muted);
+    padding:8px;background:linear-gradient(0deg,rgba(16,14,11,.9),transparent);
+  }
+  footer a{pointer-events:auto}
+
+  /* intro */
+  #intro{
+    position:fixed;inset:0;z-index:90;background:radial-gradient(circle at 50% 40%, #1c1610, #0c0a08);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    transition:opacity .8s;padding:24px;
+  }
+  #intro.gone{opacity:0;pointer-events:none}
+  #intro h2{font-family:'Cormorant Garamond',serif;font-size:clamp(30px,6vw,58px);color:var(--gold);margin:0;font-weight:600;letter-spacing:.02em}
+  #intro p{color:var(--muted);max-width:560px;line-height:1.7;margin:18px 0 26px;font-weight:300}
+  #intro .enter{border:1px solid var(--gold);color:var(--gold);background:transparent;padding:12px 30px;border-radius:26px;cursor:pointer;font-size:14px;letter-spacing:.14em;text-transform:uppercase;transition:.25s}
+  #intro .enter:hover{background:var(--gold);color:#120f08}
+  .glow{animation:pulse 4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{text-shadow:0 0 30px rgba(232,192,90,.15)}50%{text-shadow:0 0 55px rgba(232,192,90,.4)}}
+
+  /* ---------- Mobile / small screens ---------- */
+  @media (max-width:680px){
+    :root{--ruler-w:52px}
+    header{padding:10px 14px 18px}
+    h1{font-size:19px}
+    h1 .sub{display:none}
+    .controls{gap:10px;margin-top:9px}
+    .chip{font-size:12px;padding:5px 10px}
+    .sep{display:none}
+    .zoom{font-size:11px}
+    #era{right:12px}
+    #era .yr{font-size:28px}
+    #era .lbl{font-size:9.5px;letter-spacing:.14em}
+    #stage{padding:0 12px 120px}
+    .lane-head .nm{font-size:16px}
+    .lane-head .rg{font-size:9.5px}
+    #lanes.focus .lane{min-width:78vw}
+    #lanes.focus.solo .lane{min-width:88vw}
+    #lanes.overview .lane{min-width:92px;max-width:120px}
+    .ev-card{margin-left:44px}
+    .ev-img{height:130px}
+    .ev-dot{width:16px;height:16px;top:-8px}
+    footer{font-size:10px;padding:6px}
+  }
+  @media (max-width:680px) and (hover:none){
+    /* bigger tap target on touch devices */
+    .ev-dot{width:18px;height:18px;top:-9px}
+  }
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<header>
+  <div class="title-row">
+    <h1>Parallel Antiquity<span class="sub">civilizations across time</span></h1>
+  </div>
+  <div class="controls">
+    <div class="chip-wrap" id="chips"></div>
+    <div class="sep"></div>
+    <button class="btn" id="allBtn">All</button>
+    <button class="btn" id="noneBtn">Clear</button>
+    <div class="sep"></div>
+    <label class="zoom">Zoom
+      <input type="range" id="zoom" min="0.45" max="3" step="0.05" value="0.9">
+    </label>
+    <div class="sep"></div>
+    <label class="toggle" title="On: real photos from Wikimedia (AI art as fallback). Off: AI-generated art only."><input type="checkbox" id="imgToggle" checked> Web photos</label>
+  </div>
+</header>
+
+<div id="era"><div class="yr">—</div><div class="lbl">era</div></div>
+
+<div id="timeline">
+  <div id="stage">
+    <div id="ruler"><div class="inner" id="rulerInner"></div></div>
+    <div id="lanes"></div>
+  </div>
+</div>
+
+<div id="tip"><div class="ty"></div><div class="tt"></div></div>
+
+<div id="drawer">
+  <div class="d-top">
+    <div class="d-close" id="dClose">&times;</div>
+    <div class="d-civ" id="dCiv"></div>
+    <div class="d-yr" id="dYr"></div>
+    <div class="d-ttl" id="dTtl"></div>
+  </div>
+  <div class="d-body">
+    <img class="d-img" id="dImg" alt="" style="display:none">
+    <div class="d-loading" id="dLoad" style="display:none">searching Wikimedia for an image…</div>
+    <div class="d-desc" id="dDesc"></div>
+    <div class="d-cap" id="dCap"></div>
+  </div>
+</div>
+
+<footer>Time axis is linear: 4000&nbsp;BCE → today. Photos fetched live from
+  <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a>; AI-generated era art fills the gaps. Select 1–2 civilizations to compare closely.</footer>
+
+<div id="intro">
+  <h2 class="glow">Parallel Antiquity</h2>
+  <p>Nine civilizations, one shared river of time — from the first cities of Sumer to today.
+     Scroll to travel through the eras; toggle civilizations to compare who rose and fell together.</p>
+  <button class="enter" id="enterBtn">Enter the timeline</button>
+</div>
+
+<script>
+/* ============================================================
+   DATA  — 9 civilizations, parallel from ~4000 BCE to present
+   year: negative = BCE, positive = CE.  wiki = Wikipedia title for image.
+   ============================================================ */
+const ART = 'https://d8j0ntlcm91z4.cloudfront.net/user_32K9HtzzmhQ7rQ9D5Pe69nRfPAZ/';
+// Per-event AI-generated art (filenames under ART); key = civId + '-' + eventIndex
+const EVENT_ART = {
+  'meso-0':'hf_20260724_131319_dfceb4e4-a3ec-4580-b10c-1494c1789417.png',
+  'meso-1':'hf_20260724_131320_856716af-df08-4f79-bf34-39b63087e86c.png',
+  'meso-2':'hf_20260724_131322_56701f8c-2dbf-406b-969b-5eb7294e2430.png',
+  'meso-3':'hf_20260724_131323_b7707e9c-f2fd-4472-842b-6598e965553d.png',
+  'meso-4':'hf_20260724_131325_ae16deee-e8ea-4196-9e01-b1738eac179d.png',
+  'meso-5':'hf_20260724_131326_3f21b7cc-8061-48b4-8666-4963382b135c.png',
+  'meso-6':'hf_20260724_131328_8136dc90-5170-4ef9-8ff1-ee2e36ed839b.png',
+  'egypt-0':'hf_20260724_131329_891f53cf-04c9-4572-ba2a-0b6848820bf7.png',
+  'egypt-1':'hf_20260724_131330_da4e9f40-537e-4faf-af0b-3ab0f4e91c45.png',
+  'egypt-2':'hf_20260724_131332_bfc389c7-cbe9-4d2b-a9d5-79935d14e2fd.png',
+  'egypt-3':'hf_20260724_131333_076ede75-451c-473f-863d-d0dd61a07c75.png',
+  'egypt-4':'hf_20260724_131335_5d1b216b-61dc-4cbc-b3b5-4dd08477d2aa.png',
+  'egypt-5':'hf_20260724_131340_94424209-e908-443d-b609-b523266db5ee.png',
+  'egypt-6':'hf_20260724_131341_95bddd85-ea36-4d50-b82a-4d7c26e0a975.png',
+  'egypt-7':'hf_20260724_131342_e5ac6025-bbef-408f-88e9-2b15daded6fa.png',
+  'indus-0':'hf_20260724_131343_8859b1fe-9a62-4ad4-813b-c730ad8ead94.png',
+  'indus-1':'hf_20260724_131344_7b185786-7d21-4064-b77a-44b692d6001f.png',
+  'indus-2':'hf_20260724_131345_dc9e607c-730c-4730-a5ae-879ea6d29ea2.png',
+  'indus-3':'hf_20260724_131346_65b2a62c-83d2-45ee-9945-174db326f948.png',
+  'indus-4':'hf_20260724_131347_282ae697-82e1-4ca4-85aa-e223c2aaa3a3.png',
+  'china-0':'hf_20260724_131406_a078bdf2-8cd9-455e-835d-cb68859658a1.png',
+  'china-1':'hf_20260724_131408_579886d8-26a3-4f6c-8d16-9db926f6a59d.png',
+  'china-2':'hf_20260724_131409_3efe8aeb-612c-4aed-9ab4-b384ec44c1e7.png',
+  'china-3':'hf_20260724_131411_431a1ca1-f342-467e-9ec3-2174820a7fae.png',
+  'china-4':'hf_20260724_131412_7e3830c7-085f-43d8-a6f4-d96ba529b880.png',
+  'china-5':'hf_20260724_131414_cc2b6195-cda9-4ef9-852d-1c489dec549a.png',
+  'china-6':'hf_20260724_131415_e4bc6747-f9e7-4538-b872-a9ec0270cab8.png',
+  'china-7':'hf_20260724_131417_731ec92b-68b6-4caf-965e-a4d5548132f6.png',
+  'china-8':'hf_20260724_131419_37262839-d4a4-4b46-922b-2cc6d991da8d.png',
+  'greece-0':'hf_20260724_131420_41705a3d-4af5-40fe-82b2-721a841b49a5.png',
+  'greece-1':'hf_20260724_131422_bc611d01-8969-4670-a5b7-b74350eb724a.png',
+  'greece-2':'hf_20260724_131423_ecab38f5-6163-4e1f-9659-688aa687c745.png',
+  'greece-3':'hf_20260724_131425_d35f3a69-f5ef-4b38-ab73-6150901b9057.png',
+  'greece-4':'hf_20260724_131426_b13f5868-7942-4cdb-994d-771549e296ad.png',
+  'greece-5':'hf_20260724_131431_c962238a-5d34-4cca-9b3d-09a00aec69e2.png',
+  'greece-6':'hf_20260724_131432_187dcb7c-0e1f-4985-8e26-6bb3063ceeae.png',
+  'rome-0':'hf_20260724_131433_d36dad61-cd37-4f7a-a216-a6597f1096f8.png',
+  'rome-1':'hf_20260724_131435_8d8fa739-b70e-421c-8b3b-b02dbb956e17.png',
+  'rome-2':'hf_20260724_131436_9e52c257-44d7-4a1d-a626-2736dc1066ea.png',
+  'rome-3':'hf_20260724_131437_bdd10ae4-e405-49e8-b003-96883221abaa.png',
+  'rome-4':'hf_20260724_131438_edc95531-cebb-4d93-b852-9700bdfbbf17.png',
+  'rome-5':'hf_20260724_131439_1d8561fd-3016-4634-9f61-5f5b89f10596.png',
+  'rome-6':'hf_20260724_131440_0fa0ebb8-f582-463e-ac04-c7cfdfea47e3.png',
+  'persia-0':'hf_20260724_131500_b102423d-9839-4248-abea-1fe6e847c4ec.png',
+  'persia-1':'hf_20260724_131502_7bbafd0f-0437-478d-839e-0e689c294bcc.png',
+  'persia-2':'hf_20260724_131503_e7a840a9-88ba-4f1f-a77b-da4d15fbcea2.png',
+  'persia-3':'hf_20260724_131504_89d6202c-ad37-4892-af0b-062d6b0f23eb.png',
+  'persia-4':'hf_20260724_131506_2f44263d-9fe5-447a-836b-e640a85913cd.png',
+  'persia-5':'hf_20260724_131507_3ba36924-30d5-439b-815f-cb05fa4f5ed2.png',
+  'meso_am-0':'hf_20260724_131509_ad38932f-0a70-485e-a309-288d65672931.png',
+  'meso_am-1':'hf_20260724_131510_6f1c6133-d50f-4f1d-9e85-97d1185dcb2a.png',
+  'meso_am-2':'hf_20260724_131512_adc04d50-3468-4fe3-8d2a-2e1d65414aed.png',
+  'meso_am-3':'hf_20260724_131513_4e809ec3-8417-4b81-874e-cb3f0c58a9b2.png',
+  'meso_am-4':'hf_20260724_131515_33cf09a8-e770-448e-9b1a-9c3f4bc6351a.png',
+  'meso_am-5':'hf_20260724_131516_5685c914-639c-412e-bf23-2f84a23fc85f.png',
+  'meso_am-6':'hf_20260724_131518_c3810d4e-8714-45da-93b8-694b2decc4ce.png',
+  'andes-0':'hf_20260724_131520_49445200-8337-492c-b930-83f22712b30d.png',
+  'andes-1':'hf_20260724_131521_5941d2af-e547-41c1-b2a3-7f94984179cd.png',
+  'andes-2':'hf_20260724_131523_a90f98de-61c3-4c68-be5d-36dc7a88b252.png',
+  'andes-3':'hf_20260724_131524_7ab60fe6-cf89-4cfa-a1bb-69b8ba31b71c.png',
+  'andes-4':'hf_20260724_131526_04453846-f5a2-40f3-a6cc-bd73a9a31cb6.png',
+  'andes-5':'hf_20260724_131527_6f884735-ee78-4b50-8659-3ea84fa57f03.png',
+};
+function eventArt(civId, i){ const f=EVENT_ART[civId+'-'+i]; return f?ART+f:''; }
+const CIVS = [
+  { id:'meso', name:'Mesopotamia', region:'Fertile Crescent', color:'#d9a441',
+    art: ART+'hf_20260724_130119_b737005d-56e0-4506-9d72-fa62f9ba205f.png',
+    periods:[
+      {name:'Uruk',s:-4000,e:-2900},{name:'Early Dynastic',s:-2900,e:-2334},
+      {name:'Akkadian',s:-2334,e:-2154},{name:'Ur III',s:-2112,e:-2004},
+      {name:'Old Babylonian',s:-2004,e:-1595},{name:'Assyrian',s:-1365,e:-609},
+      {name:'Neo-Babylonian',s:-626,e:-539}],
+    events:[
+      {y:-3500,t:'First cities & writing',wiki:'Cuneiform',d:'Uruk grows into the world’s first true city; cuneiform, the earliest writing system, is pressed into clay.'},
+      {y:-3200,t:'Sumerian city-states',wiki:'Sumer',d:'Competing city-states — Uruk, Ur, Lagash — develop irrigation, temples (ziggurats) and kingship.'},
+      {y:-2334,t:'Sargon’s Akkadian Empire',wiki:'Akkadian_Empire',d:'Sargon of Akkad forges the first multi-ethnic empire, uniting Sumer under one crown.'},
+      {y:-2100,t:'Great Ziggurat of Ur',wiki:'Ziggurat_of_Ur',d:'The Third Dynasty of Ur builds monumental ziggurats and codifies some of the earliest law.'},
+      {y:-1792,t:'Code of Hammurabi',wiki:'Code_of_Hammurabi',d:'Hammurabi of Babylon issues one of history’s earliest written legal codes — "an eye for an eye".'},
+      {y:-883,t:'Neo-Assyrian power',wiki:'Assyria',d:'Assyria becomes the dominant military empire of the Near East, ruling from Nineveh.'},
+      {y:-539,t:'Fall of Babylon to Cyrus',wiki:'Cyrus_the_Great',d:'Cyrus the Great takes Babylon, folding Mesopotamia into the Persian Empire.'}
+    ]},
+  { id:'egypt', name:'Ancient Egypt', region:'Nile Valley', color:'#e8c05a',
+    art: ART+'hf_20260724_130121_6dacdce8-2621-485d-92d0-09aa9e778e6b.png',
+    periods:[
+      {name:'Predynastic',s:-4000,e:-3100},{name:'Early Dynastic',s:-3100,e:-2686},
+      {name:'Old Kingdom',s:-2686,e:-2181},{name:'1st Intermediate',s:-2181,e:-2055},
+      {name:'Middle Kingdom',s:-2055,e:-1650},{name:'New Kingdom',s:-1550,e:-1077},
+      {name:'Late Period',s:-664,e:-332},{name:'Ptolemaic',s:-332,e:-30}],
+    events:[
+      {y:-3100,t:'Unification under Narmer',wiki:'Narmer',d:'Narmer unites Upper and Lower Egypt, founding the first dynasty of the pharaohs.'},
+      {y:-2560,t:'Great Pyramid of Giza',wiki:'Great_Pyramid_of_Giza',d:'Khufu raises the Great Pyramid — the tallest human structure for nearly 4,000 years.'},
+      {y:-2055,t:'Middle Kingdom reunification',wiki:'Mentuhotep_II',d:'Mentuhotep II reunites Egypt after civil war, opening a golden age of art and literature.'},
+      {y:-1332,t:'Tutankhamun',wiki:'Tutankhamun',d:'The boy-king restores the old gods after Akhenaten’s religious revolution; his tomb survives intact.'},
+      {y:-1279,t:'Ramesses II',wiki:'Ramesses_II',d:'"Ramesses the Great" builds Abu Simbel and fights the Hittites at Kadesh — the first recorded peace treaty.'},
+      {y:-332,t:'Alexander conquers Egypt',wiki:'Alexander_the_Great',d:'Alexander founds Alexandria; the Greek Ptolemaic dynasty will rule for three centuries.'},
+      {y:-196,t:'The Rosetta Stone',wiki:'Rosetta_Stone',d:'A trilingual decree carved in stone — later the key to deciphering hieroglyphs.'},
+      {y:-30,t:'Death of Cleopatra',wiki:'Cleopatra',d:'With Cleopatra VII’s death, Egypt becomes a province of Rome, ending 3,000 years of pharaonic rule.'}
+    ]},
+  { id:'indus', name:'Indus Valley', region:'South Asia', color:'#d98352',
+    art: ART+'hf_20260724_130123_0a06084d-a810-4b95-a7a0-283e24a62eca.png',
+    periods:[
+      {name:'Early Harappan',s:-3300,e:-2600},{name:'Mature Harappan',s:-2600,e:-1900},
+      {name:'Late Harappan',s:-1900,e:-1300},{name:'Vedic Period',s:-1500,e:-500}],
+    events:[
+      {y:-3300,t:'Early Harappan settlements',wiki:'Indus_Valley_Civilisation',d:'Farming villages along the Indus grow into planned towns with standardized bricks.'},
+      {y:-2600,t:'Mohenjo-daro & Harappa',wiki:'Mohenjo-daro',d:'Grid-planned cities with drainage, granaries and the enigmatic, still-undeciphered Indus script.'},
+      {y:-2500,t:'The Great Bath',wiki:'Great_Bath',d:'A watertight public pool at Mohenjo-daro — evidence of sophisticated civic engineering.'},
+      {y:-1900,t:'Decline of the cities',wiki:'Indus_Valley_Civilisation',d:'Climate shift and shifting rivers lead to gradual abandonment of the great urban centres.'},
+      {y:-1500,t:'Vedic culture rises',wiki:'Vedic_period',d:'The Rigveda is composed; the cultural roots of Hinduism and Sanskrit take hold across the subcontinent.'}
+    ]},
+  { id:'china', name:'Ancient China', region:'East Asia', color:'#d1504f',
+    art: ART+'hf_20260724_130124_9a457f97-8868-4f21-ab56-b2171eab8418.png',
+    periods:[
+      {name:'Xia',s:-2070,e:-1600},{name:'Shang',s:-1600,e:-1046},{name:'Zhou',s:-1046,e:-256},
+      {name:'Qin',s:-221,e:-206},{name:'Han',s:-206,e:220},{name:'Tang',s:618,e:907},
+      {name:'Song',s:960,e:1279},{name:'Ming',s:1368,e:1644},{name:'Qing',s:1644,e:1912}],
+    events:[
+      {y:-2070,t:'Xia dynasty (traditional)',wiki:'Xia_dynasty',d:'The semi-legendary first dynasty; Yu the Great is said to have tamed the floods.'},
+      {y:-1600,t:'Shang & oracle bones',wiki:'Shang_dynasty',d:'Bronze casting reaches its peak; the earliest Chinese writing appears on oracle bones.'},
+      {y:-1046,t:'Zhou & the Mandate of Heaven',wiki:'Zhou_dynasty',d:'The longest dynasty introduces the "Mandate of Heaven" — the moral right to rule.'},
+      {y:-551,t:'Confucius',wiki:'Confucius',d:'The teacher whose philosophy of virtue, family and order will shape East Asia for millennia.'},
+      {y:-221,t:'Qin unifies China',wiki:'Qin_Shi_Huang',d:'The First Emperor standardizes script, currency and roads — and builds the Terracotta Army.'},
+      {y:-206,t:'Han dynasty & the Silk Road',wiki:'Han_dynasty',d:'A golden age of expansion; the Silk Road links China to Rome across Central Asia.'},
+      {y:105,t:'Invention of paper',wiki:'Cai_Lun',d:'Cai Lun refines papermaking, transforming record-keeping and learning worldwide.'},
+      {y:618,t:'Tang dynasty',wiki:'Tang_dynasty',d:'Cosmopolitan Chang’an becomes the world’s largest city; poetry and printing flourish.'},
+      {y:1405,t:'Zheng He’s treasure fleets',wiki:'Zheng_He',d:'Ming admiral Zheng He sails vast fleets to Africa — decades before European exploration.'}
+    ]},
+  { id:'greece', name:'Ancient Greece', region:'Aegean', color:'#5aa9e6',
+    art: ART+'hf_20260724_130126_2c2ebb1f-6be1-45e4-b2e8-7e683f83dccc.png',
+    periods:[
+      {name:'Minoan / Mycenaean',s:-2000,e:-1100},{name:'Dark Ages',s:-1100,e:-800},
+      {name:'Archaic',s:-800,e:-480},{name:'Classical',s:-480,e:-323},{name:'Hellenistic',s:-323,e:-31}],
+    events:[
+      {y:-1600,t:'Mycenaean palaces',wiki:'Mycenaean_Greece',d:'Warrior kings rule from Mycenae and Pylos — the world later remembered in Homer’s epics.'},
+      {y:-776,t:'First Olympic Games',wiki:'Ancient_Olympic_Games',d:'Pan-Hellenic games at Olympia begin, giving the Greeks a shared calendar and identity.'},
+      {y:-508,t:'Athenian democracy',wiki:'Athenian_democracy',d:'Cleisthenes’ reforms give citizens direct rule — the birth of democracy.'},
+      {y:-447,t:'The Parthenon',wiki:'Parthenon',d:'Under Pericles, Athens builds the Parthenon at the height of its cultural golden age.'},
+      {y:-399,t:'Socrates & philosophy',wiki:'Socrates',d:'Socrates, Plato and Aristotle lay the foundations of Western philosophy and science.'},
+      {y:-336,t:'Alexander the Great',wiki:'Alexander_the_Great',d:'Alexander spreads Greek culture from Egypt to India, creating the Hellenistic world.'},
+      {y:-146,t:'Roman conquest',wiki:'Roman_Greece',d:'Rome absorbs Greece — but Greek art, myth and thought conquer Rome in return.'}
+    ]},
+  { id:'rome', name:'Ancient Rome', region:'Italy / Mediterranean', color:'#c76b74',
+    art: ART+'hf_20260724_130127_159f127b-4e08-405a-baf1-636ca1999ae6.png',
+    periods:[
+      {name:'Kingdom',s:-753,e:-509},{name:'Republic',s:-509,e:-27},{name:'Empire',s:-27,e:476}],
+    events:[
+      {y:-753,t:'Founding of Rome',wiki:'Founding_of_Rome',d:'By legend, Romulus founds Rome — a small city that will rule the Mediterranean.'},
+      {y:-509,t:'The Roman Republic',wiki:'Roman_Republic',d:'Rome expels its kings and builds a republic of senators, consuls and citizen-soldiers.'},
+      {y:-44,t:'Assassination of Caesar',wiki:'Julius_Caesar',d:'Julius Caesar is killed on the Ides of March, ending the Republic’s slow collapse.'},
+      {y:-27,t:'Augustus & the Empire',wiki:'Augustus',d:'Augustus becomes first emperor, opening two centuries of Pax Romana.'},
+      {y:80,t:'The Colosseum',wiki:'Colosseum',d:'Rome dedicates the Colosseum — 50,000 spectators for games and spectacle.'},
+      {y:313,t:'Edict of Milan',wiki:'Edict_of_Milan',d:'Constantine legalizes Christianity, reshaping the future of Europe.'},
+      {y:476,t:'Fall of Western Rome',wiki:'Fall_of_the_Western_Roman_Empire',d:'The last western emperor is deposed; antiquity gives way to the medieval world.'}
+    ]},
+  { id:'persia', name:'Persia', region:'Iranian Plateau', color:'#4fb3a6',
+    art: ART+'hf_20260724_130129_5c29ccc0-b90f-4c11-af43-0b8329f8d282.png',
+    periods:[
+      {name:'Achaemenid',s:-550,e:-330},{name:'Seleucid',s:-312,e:-63},
+      {name:'Parthian',s:-247,e:224},{name:'Sasanian',s:224,e:651}],
+    events:[
+      {y:-550,t:'Cyrus & the Achaemenids',wiki:'Achaemenid_Empire',d:'Cyrus the Great builds the largest empire the world had yet seen, from the Aegean to the Indus.'},
+      {y:-486,t:'Darius & Xerxes',wiki:'Darius_the_Great',d:'Royal roads, a postal system and Persepolis — and the great wars against Greece.'},
+      {y:-330,t:'Conquered by Alexander',wiki:'Battle_of_Gaugamela',d:'Alexander defeats Darius III at Gaugamela, ending the Achaemenid Empire.'},
+      {y:-247,t:'Parthian Empire',wiki:'Parthian_Empire',d:'The Parthians revive Persian power and hold Rome to a standstill in the east.'},
+      {y:224,t:'Sasanian revival',wiki:'Sasanian_Empire',d:'The Sasanians restore a glittering Persian empire and Zoroastrian faith.'},
+      {y:651,t:'Muslim conquest',wiki:'Muslim_conquest_of_Persia',d:'The Arab conquest ends the Sasanian era and brings Islam to Persia.'}
+    ]},
+  { id:'meso_am', name:'Mesoamerica', region:'Mexico & Central America', color:'#7bbf6a',
+    art: ART+'hf_20260724_130131_8b53f915-7f5b-4bbc-a999-c304b1f24394.png',
+    periods:[
+      {name:'Olmec',s:-1500,e:-400},{name:'Maya Preclassic',s:-2000,e:250},
+      {name:'Maya Classic',s:250,e:900},{name:'Postclassic / Aztec',s:900,e:1521}],
+    events:[
+      {y:-1500,t:'The Olmec',wiki:'Olmec',d:'The "mother culture" of Mesoamerica carves colossal stone heads and builds the first cities.'},
+      {y:-400,t:'La Venta',wiki:'La_Venta',d:'A major Olmec centre with pyramids and early writing and calendar systems.'},
+      {y:250,t:'Maya Classic era',wiki:'Maya_civilization',d:'The Maya build soaring pyramid-cities and develop advanced astronomy and hieroglyphs.'},
+      {y:450,t:'Teotihuacan',wiki:'Teotihuacan',d:'One of the ancient world’s largest cities rises, with its vast Pyramid of the Sun.'},
+      {y:900,t:'Classic Maya collapse',wiki:'Classic_Maya_collapse',d:'Drought and war empty the great southern Maya cities within a century.'},
+      {y:1325,t:'Founding of Tenochtitlan',wiki:'Tenochtitlan',d:'The Aztecs build an island capital of canals and temples — today’s Mexico City.'},
+      {y:1521,t:'Spanish conquest',wiki:'Fall_of_Tenochtitlan',d:'Cortés and native allies fall Tenochtitlan, ending the Aztec Empire.'}
+    ]},
+  { id:'andes', name:'Andean Cultures', region:'South America', color:'#c98a4b',
+    art: ART+'hf_20260724_130133_b4b59145-ba0f-4795-b005-09aaa5a3d566.png',
+    periods:[
+      {name:'Chavín',s:-900,e:-200},{name:'Moche',s:100,e:700},
+      {name:'Wari / Tiwanaku',s:600,e:1000},{name:'Inca',s:1438,e:1533}],
+    events:[
+      {y:-900,t:'Chavín culture',wiki:'Chavín_culture',d:'A shared religious art style spreads across the Andes from the temple of Chavín de Huántar.'},
+      {y:100,t:'The Moche',wiki:'Moche_culture',d:'Master potters and metalworkers build adobe pyramids on Peru’s north coast.'},
+      {y:600,t:'Wari & Tiwanaku',wiki:'Wari_culture',d:'Highland empires build roads and terraced cities, foreshadowing the Inca.'},
+      {y:1438,t:'The Inca Empire',wiki:'Inca_Empire',d:'From Cusco the Inca build the largest empire in the pre-Columbian Americas, laced by 40,000 km of road.'},
+      {y:1450,t:'Machu Picchu',wiki:'Machu_Picchu',d:'A royal estate of exquisite dry-stone masonry perched high in the Andes.'},
+      {y:1533,t:'Spanish conquest',wiki:'Spanish_conquest_of_the_Inca_Empire',d:'Pizarro captures the Inca capital, ending Andean independence.'}
+    ]}
+];
+
+/* ============================================================ STATE */
+const T_MIN = -4000, T_MAX = 2025;
+let pxPerYear = 0.9;
+let selected = new Set(CIVS.map(c=>c.id));
+let imagesOn = true;
+const imgCache = new Map();
+
+const stage = document.getElementById('stage');
+const lanesEl = document.getElementById('lanes');
+const rulerInner = document.getElementById('rulerInner');
+const timeline = document.getElementById('timeline');
+
+let topPad = 150;
+function layout(){
+  const h = document.querySelector('header').offsetHeight;
+  topPad = h + 12;
+  document.documentElement.style.setProperty('--top-pad', topPad+'px');
+  document.getElementById('era').style.top = (h + 6) + 'px';
+}
+
+function fmtYear(y){
+  y = Math.round(y);
+  if(y<0) return Math.abs(y)+' BCE';
+  if(y===0) return '1 CE';
+  return y+' CE';
+}
+function yPos(year){ return (year - T_MIN) * pxPerYear; }
+function totalHeight(){ return (T_MAX - T_MIN) * pxPerYear; }
+
+/* ---------------- Build chips ---------------- */
+const chipsEl = document.getElementById('chips');
+CIVS.forEach(c=>{
+  const el = document.createElement('div');
+  el.className='chip on';
+  el.dataset.id=c.id;
+  el.style.background=c.color;
+  el.innerHTML = `<span class="dot" style="background:${c.color}"></span>${c.name}`;
+  el.addEventListener('click', ()=>toggleCiv(c.id));
+  chipsEl.appendChild(el);
+});
+function refreshChips(){
+  [...chipsEl.children].forEach(el=>{
+    const on = selected.has(el.dataset.id);
+    const c = CIVS.find(x=>x.id===el.dataset.id);
+    el.classList.toggle('on', on);
+    el.style.background = on ? c.color : 'rgba(255,255,255,.02)';
+  });
+}
+function toggleCiv(id){
+  if(selected.has(id)) selected.delete(id); else selected.add(id);
+  applySelection();
+}
+document.getElementById('allBtn').onclick = ()=>{ selected = new Set(CIVS.map(c=>c.id)); applySelection(); };
+document.getElementById('noneBtn').onclick = ()=>{ selected = new Set(); applySelection(); };
+
+function applySelection(){
+  refreshChips();
+  CIVS.forEach(c=>{
+    const lane = document.getElementById('lane-'+c.id);
+    if(lane) lane.classList.toggle('hidden', !selected.has(c.id));
+  });
+  const n = selected.size;
+  lanesEl.classList.toggle('focus', n>0 && n<=2);
+  lanesEl.classList.toggle('overview', n>2);
+  lanesEl.classList.toggle('solo', n===1);
+  // trigger reveal recheck
+  requestAnimationFrame(checkReveal);
+}
+
+/* ---------------- Build ruler ---------------- */
+function buildRuler(){
+  rulerInner.innerHTML='';
+  rulerInner.style.height = totalHeight()+'px';
+  // major every 1000, minor every 500
+  for(let y=T_MIN; y<=T_MAX; y+=500){
+    const major = (y%1000===0);
+    const t=document.createElement('div');
+    t.className='tick'+(major?' major':'');
+    t.style.top = yPos(y)+'px';
+    if(major || pxPerYear>1.1){
+      const lbl=document.createElement('div');
+      lbl.className='t-lbl';
+      lbl.textContent = fmtYear(y);
+      t.appendChild(lbl);
+    }
+    rulerInner.appendChild(t);
+  }
+  const now=document.createElement('div');
+  now.id='nowline'; now.style.top=yPos(2025)+'px';
+  now.innerHTML='<div class="t-lbl">today</div>';
+  rulerInner.appendChild(now);
+}
+
+/* ---------------- Build lanes ---------------- */
+function buildLanes(){
+  lanesEl.innerHTML='';
+  CIVS.forEach(c=>{
+    const lane=document.createElement('div');
+    lane.className='lane'; lane.id='lane-'+c.id;
+
+    const head=document.createElement('div');
+    head.className='lane-head';
+    head.innerHTML=`
+      ${c.art?`<div class="art" style="background-image:url('${c.art}')"></div>`:''}
+      <div class="veil"></div>
+      <div class="accent" style="background:${c.color}"></div>
+      <div class="nm" style="color:${c.color}">${c.name}</div>
+      <div class="rg">${c.region}</div>`;
+    lane.appendChild(head);
+
+    const body=document.createElement('div');
+    body.className='lane-body';
+    body.style.height=totalHeight()+'px';
+
+    const spine=document.createElement('div');
+    spine.className='spine'; body.appendChild(spine);
+
+    // periods
+    c.periods.forEach(p=>{
+      const s=Math.max(p.s,T_MIN), e=Math.min(p.e,T_MAX);
+      const band=document.createElement('div');
+      band.className='period';
+      band.style.top=yPos(s)+'px';
+      band.style.height=(yPos(e)-yPos(s))+'px';
+      band.style.background=`linear-gradient(180deg, ${hex(c.color,.13)}, ${hex(c.color,.05)})`;
+      band.innerHTML=`<div class="p-lbl">${p.name}</div>`;
+      body.appendChild(band);
+    });
+
+    // events
+    c.events.forEach((ev,i)=>{
+      ev._img = eventArt(c.id, i);   // dedicated AI art for this event
+      const wrap=document.createElement('div');
+      wrap.className='event'; wrap.style.top=yPos(ev.y)+'px';
+
+      const dot=document.createElement('div');
+      dot.className='ev-dot';
+      dot.style.background=c.color;
+      dot.style.boxShadow=`0 0 12px ${hex(c.color,.7)}`;
+      dot.addEventListener('mouseenter',e=>showTip(e,ev,c));
+      dot.addEventListener('mousemove',e=>moveTip(e));
+      dot.addEventListener('mouseleave',hideTip);
+      dot.addEventListener('click',()=>openDrawer(ev,c));
+      wrap.appendChild(dot);
+
+      const card=document.createElement('div');
+      card.className='ev-card';
+      card.dataset.wiki=ev.wiki;
+      card.dataset.evart=ev._img||'';
+      card.dataset.art=c.art||'';
+      card.innerHTML=`
+        <div class="ev-yr" style="color:${c.color}">${fmtYear(ev.y)}</div>
+        <div class="ev-ttl">${ev.t}</div>
+        <div class="ev-desc">${ev.d}</div>
+        <img class="ev-img" alt="${ev.t}">
+        <div class="ev-cap"></div>`;
+      card.addEventListener('click',()=>openDrawer(ev,c));
+      wrap.appendChild(card);
+
+      body.appendChild(wrap);
+    });
+
+    lane.appendChild(body);
+    lanesEl.appendChild(lane);
+  });
+}
+
+function hex(c,a){ // #rrggbb + alpha -> rgba
+  const n=parseInt(c.slice(1),16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+/* ---------------- Reveal + lazy images ---------------- */
+function checkReveal(){
+  const vh=window.innerHeight;
+  document.querySelectorAll('.ev-card').forEach(card=>{
+    if(card.classList.contains('in')) { maybeImg(card); return; }
+    const r=card.getBoundingClientRect();
+    if(r.top<vh-40 && r.bottom>90){ card.classList.add('in'); maybeImg(card); }
+  });
+}
+function maybeImg(card){
+  const img=card.querySelector('.ev-img');
+  if(img.dataset.loaded) return;
+  img.dataset.loaded='1';
+  const cap=card.querySelector('.ev-cap');
+  const art=card.dataset.evart || card.dataset.art;
+  const useArt=()=>{ if(art){ img.src=art; img.classList.add('show');
+    cap.innerHTML='AI-generated impression'; cap.classList.add('show'); } };
+  if(!imagesOn){ useArt(); return; }   // pure AI-art mode
+  loadImage(card.dataset.wiki).then(res=>{
+    if(res && res.src){
+      img.src=res.src; img.classList.add('show');
+      cap.innerHTML='via Wikimedia Commons'; cap.classList.add('show');
+    } else { useArt(); }
+  }).catch(useArt);
+}
+
+async function loadImage(title){
+  if(imgCache.has(title)) return imgCache.get(title);
+  const p=(async()=>{
+    try{
+      const url=`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*`+
+                `&prop=pageimages&piprop=thumbnail|original&pithumbsize=600&titles=${encodeURIComponent(title)}`;
+      const r=await fetch(url);
+      const j=await r.json();
+      const pages=j.query&&j.query.pages;
+      const pg=pages&&Object.values(pages)[0];
+      const src=pg&&(pg.thumbnail&&pg.thumbnail.source);
+      const orig=pg&&(pg.original&&pg.original.source);
+      return src?{src,orig:orig||src}:null;
+    }catch(e){ return null; }
+  })();
+  imgCache.set(title,p);
+  return p;
+}
+
+/* ---------------- Tooltip (overview) ---------------- */
+const tip=document.getElementById('tip');
+function showTip(e,ev,c){
+  if(!lanesEl.classList.contains('overview')) return;
+  tip.querySelector('.ty').textContent=fmtYear(ev.y);
+  tip.querySelector('.ty').style.color=c.color;
+  tip.querySelector('.tt').textContent=ev.t;
+  tip.style.opacity=1; moveTip(e);
+}
+function moveTip(e){
+  const x=Math.min(e.clientX+14, window.innerWidth-260);
+  tip.style.left=x+'px'; tip.style.top=(e.clientY+14)+'px';
+}
+function hideTip(){ tip.style.opacity=0; }
+
+/* ---------------- Detail drawer ---------------- */
+const drawer=document.getElementById('drawer');
+function openDrawer(ev,c){
+  drawer.classList.add('open');
+  document.getElementById('dCiv').textContent=c.name+' · '+c.region;
+  document.getElementById('dCiv').style.color=c.color;
+  document.getElementById('dYr').textContent=fmtYear(ev.y);
+  document.getElementById('dYr').style.color=c.color;
+  document.getElementById('dTtl').textContent=ev.t;
+  document.getElementById('dDesc').textContent=ev.d;
+  const dImg=document.getElementById('dImg'), dLoad=document.getElementById('dLoad'), dCap=document.getElementById('dCap');
+  dImg.style.display='none'; dCap.textContent='';
+  if(imagesOn){
+    dLoad.style.display='block';
+    const art = ev._img || c.art;
+    const showArt=()=>{
+      if(art){ dImg.src=art; dImg.style.display='block';
+        dCap.innerHTML=`AI-generated impression · <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(ev.wiki)}" target="_blank" rel="noopener">read on Wikipedia</a>`;
+      } else {
+        dCap.innerHTML=`No image found · <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(ev.wiki)}" target="_blank" rel="noopener">read on Wikipedia</a>`;
+      }
+    };
+    loadImage(ev.wiki).then(res=>{
+      dLoad.style.display='none';
+      if(res&&res.src){
+        dImg.src=res.src; dImg.style.display='block';
+        dCap.innerHTML=`Image: <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(ev.wiki)}" target="_blank" rel="noopener">${ev.wiki.replace(/_/g,' ')}</a> · Wikimedia Commons`;
+      } else { showArt(); }
+    }).catch(()=>{ dLoad.style.display='none'; showArt(); });
+  } else {
+    dLoad.style.display='none';
+    const art=ev._img||c.art;
+    if(art){ dImg.src=art; dImg.style.display='block'; }
+    dCap.innerHTML=`AI-generated impression · <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(ev.wiki)}" target="_blank" rel="noopener">read on Wikipedia</a>`;
+  }
+}
+document.getElementById('dClose').onclick=()=>drawer.classList.remove('open');
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') drawer.classList.remove('open'); });
+
+/* ---------------- Era readout ---------------- */
+const eraYr=document.querySelector('#era .yr'), eraLbl=document.querySelector('#era .lbl');
+function updateEra(){
+  const centerY = timeline.scrollTop + timeline.clientHeight*0.42 - topPad;
+  const year = T_MIN + centerY/pxPerYear;
+  eraYr.textContent = fmtYear(year);
+  // find an active period among selected civs
+  let label='';
+  for(const c of CIVS){
+    if(!selected.has(c.id)) continue;
+    const p=c.periods.find(p=>year>=p.s&&year<=p.e);
+    if(p){ label=c.name+' · '+p.name; break; }
+  }
+  eraLbl.textContent = label || 'along the shared timeline';
+}
+
+/* ---------------- Scroll wiring ---------------- */
+let ticking=false;
+timeline.addEventListener('scroll',()=>{
+  if(!ticking){ requestAnimationFrame(()=>{ checkReveal(); updateEra(); ticking=false; }); ticking=true; }
+});
+
+/* ---------------- Zoom ---------------- */
+const zoomEl=document.getElementById('zoom');
+zoomEl.addEventListener('input',()=>{
+  const centerYear = T_MIN + (timeline.scrollTop + timeline.clientHeight/2 -topPad)/pxPerYear;
+  pxPerYear=parseFloat(zoomEl.value);
+  rebuildGeometry();
+  timeline.scrollTop = yPos(centerYear) - timeline.clientHeight/2 + topPad;
+  checkReveal(); updateEra();
+});
+function rebuildGeometry(){
+  buildRuler();
+  const h=totalHeight()+'px';
+  document.querySelectorAll('.lane-body').forEach(b=>b.style.height=h);
+  CIVS.forEach(c=>{
+    const lane=document.getElementById('lane-'+c.id); if(!lane)return;
+    const body=lane.querySelector('.lane-body');
+    const bands=body.querySelectorAll('.period');
+    c.periods.forEach((p,i)=>{
+      const s=Math.max(p.s,T_MIN),e=Math.min(p.e,T_MAX);
+      bands[i].style.top=yPos(s)+'px';
+      bands[i].style.height=(yPos(e)-yPos(s))+'px';
+    });
+    const evs=body.querySelectorAll('.event');
+    c.events.forEach((ev,i)=>{ evs[i].style.top=yPos(ev.y)+'px'; });
+  });
+}
+
+/* ---------------- Images toggle ---------------- */
+document.getElementById('imgToggle').addEventListener('change',e=>{
+  imagesOn=e.target.checked;
+  // reset loaded state so images re-resolve under the new mode
+  document.querySelectorAll('.ev-card .ev-img').forEach(img=>{
+    img.classList.remove('show'); img.removeAttribute('data-loaded'); img.removeAttribute('src');
+    const cap=img.parentElement.querySelector('.ev-cap'); if(cap){cap.classList.remove('show');cap.innerHTML='';}
+  });
+  checkReveal();
+});
+
+/* ---------------- Animated golden-dust background ---------------- */
+(function(){
+  const cv=document.getElementById('bg'), ctx=cv.getContext('2d');
+  let W,H,parts=[];
+  function resize(){ W=cv.width=innerWidth; H=cv.height=innerHeight;
+    const n=Math.min(150, Math.floor(W*H/12000));
+    parts=Array.from({length:n},()=>({
+      x:Math.random()*W, y:Math.random()*H,
+      r:Math.random()*1.8+0.3, s:Math.random()*0.25+0.05,
+      a:Math.random()*0.5+0.1, drift:(Math.random()-0.5)*0.15
+    }));
+  }
+  let scrollP=0;
+  timeline.addEventListener('scroll',()=>{ scrollP=timeline.scrollTop; },{passive:true});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const off=(scrollP*0.03)%H;
+    for(const p of parts){
+      p.y-=p.s; p.x+=p.drift;
+      if(p.y<-5) p.y=H+5;
+      if(p.x<-5)p.x=W+5; if(p.x>W+5)p.x=-5;
+      let yy=(p.y-off); yy=((yy%H)+H)%H;
+      ctx.beginPath();
+      ctx.arc(p.x,yy,p.r,0,6.283);
+      ctx.fillStyle=`rgba(232,192,90,${p.a})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  addEventListener('resize',resize); resize(); draw();
+})();
+
+/* ---------------- Intro ---------------- */
+document.getElementById('enterBtn').onclick=()=>{
+  document.getElementById('intro').classList.add('gone');
+  setTimeout(()=>{ layout(); checkReveal(); updateEra(); }, 200);
+};
+
+/* ---------------- Init ---------------- */
+layout();
+buildRuler();
+buildLanes();
+applySelection();
+updateEra();
+setTimeout(checkReveal,300);
+let rz;
+window.addEventListener('resize',()=>{ layout(); updateEra(); clearTimeout(rz); rz=setTimeout(checkReveal,120); });
+window.addEventListener('orientationchange',()=>{ setTimeout(()=>{ layout(); updateEra(); checkReveal(); },200); });
+</script>
+</body>
+</html>
