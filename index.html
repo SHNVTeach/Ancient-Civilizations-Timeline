@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Rivers of Time — Civilizations in Parallel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Rivers of Time</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* Layout: a fixed header over a two-axis scroller; time runs down, civilizations run across. */
   :root{
     --bg:#100e0b;
-    --bg2:#171310;
     --panel:#1c1712;
     --panel2:#221b15;
     --gold:#e8c05a;
@@ -19,26 +19,32 @@
     --muted:#9a8f7c;
     --line:rgba(232,192,90,.22);
     --line-soft:rgba(232,192,90,.10);
+    --shade:rgba(16,14,11,.82);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+    --sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
     --head-h:60px;
     --ruler-w:78px;
+    --ease:cubic-bezier(.2,.7,.2,1);
+    color-scheme:dark;
   }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0}
   body{
-    background:radial-gradient(120% 80% at 50% -10%, #1e1812 0%, var(--bg) 60%);
+    background:radial-gradient(120% 80% at 50% -10%, #1e1812 0%, var(--bg) 60%) var(--bg);
     color:var(--ink);
-    font-family:'Inter',system-ui,sans-serif;
+    font-family:var(--sans);
     overflow:hidden;
   }
   #bg{position:fixed;inset:0;z-index:0;display:block}
   a{color:var(--gold);text-decoration:none}
   a:hover{text-decoration:underline}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
   /* ---------- Top bar ---------- */
   header{
     position:fixed;top:0;left:0;right:0;z-index:40;
     background:linear-gradient(180deg, rgba(16,14,11,.96), rgba(16,14,11,.80) 70%, rgba(16,14,11,0));
-    padding:14px 22px 26px;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 22px 26px;
     backdrop-filter:blur(3px);
   }
   .title-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
@@ -46,16 +52,16 @@
     margin-left:12px;align-self:center;
     border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--gold-dim);
     border-radius:16px;padding:5px 13px;font-size:11.5px;cursor:pointer;letter-spacing:.06em;
-    transition:.15s;white-space:nowrap;
+    transition:.15s;white-space:nowrap;font-family:var(--sans);
   }
   .collapse-btn:hover{border-color:var(--gold);color:var(--gold)}
   body.controls-hidden .controls{display:none}
   h1{
-    font-family:'Cormorant Garamond',serif;
+    font-family:var(--serif);
     font-weight:600;font-size:26px;letter-spacing:.02em;margin:0;
     color:var(--gold);
   }
-  h1 .sub{color:var(--muted);font-size:14px;font-family:'Inter';font-weight:300;letter-spacing:.14em;text-transform:uppercase;margin-left:6px}
+  h1 .sub{color:var(--muted);font-size:14px;font-family:var(--sans);font-weight:300;letter-spacing:.14em;text-transform:uppercase;margin-left:6px}
   .controls{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:12px}
   .chip-wrap{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
   .chip{
@@ -63,14 +69,15 @@
     border:1px solid var(--line);border-radius:20px;
     padding:5px 12px 5px 9px;font-size:12.5px;cursor:pointer;
     color:var(--muted);background:rgba(255,255,255,.02);
-    transition:all .18s ease;user-select:none;white-space:nowrap;
+    transition:background .25s ease, color .25s ease, transform .2s var(--ease);user-select:none;white-space:nowrap;
   }
   .chip .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 2px rgba(0,0,0,.35) inset}
   .chip:hover{border-color:var(--gold-dim);color:var(--ink)}
+  .chip:active{transform:scale(.95)}
   .chip.on{color:#160f06;font-weight:600;border-color:transparent}
   .btn{
     border:1px solid var(--line);background:rgba(255,255,255,.02);color:var(--muted);
-    border-radius:8px;padding:6px 11px;font-size:12px;cursor:pointer;transition:.15s;letter-spacing:.03em;
+    border-radius:8px;padding:6px 11px;font-size:12px;cursor:pointer;transition:.15s;letter-spacing:.03em;font-family:var(--sans);
   }
   .btn:hover{border-color:var(--gold-dim);color:var(--ink)}
   .zoom{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:12px}
@@ -84,7 +91,7 @@
     margin-left:auto;align-self:center;display:flex;align-items:baseline;gap:8px;
     pointer-events:none;
   }
-  #era .yr{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);line-height:1;white-space:nowrap}
+  #era .yr{font-family:var(--serif);font-size:22px;color:var(--gold);line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums}
   #era .lbl{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
     max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
@@ -93,7 +100,6 @@
     position:absolute;inset:0;z-index:10;
     overflow:auto;-webkit-overflow-scrolling:touch;
     padding-top:var(--top-pad,150px);
-    scroll-behavior:smooth;
   }
   #timeline::-webkit-scrollbar{width:11px;height:11px}
   #timeline::-webkit-scrollbar-thumb{background:rgba(232,192,90,.3);border-radius:8px}
@@ -102,10 +108,7 @@
   #stage{display:flex;align-items:flex-start;min-width:min-content;padding:0 26px 160px}
 
   /* Ruler */
-  #ruler{
-    position:sticky;left:0;z-index:20;flex:0 0 var(--ruler-w);
-    align-self:stretch;
-  }
+  #ruler{position:sticky;left:0;z-index:20;flex:0 0 var(--ruler-w);align-self:stretch}
   #ruler .inner{position:relative;width:100%}
   .tick{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--line-soft)}
   .tick.major{border-top:1px solid var(--line)}
@@ -119,10 +122,7 @@
 
   /* Lanes */
   #lanes{display:flex;gap:0;align-items:flex-start;position:relative}
-  .lane{
-    position:relative;flex:1 1 0;transition:flex-basis .4s ease, opacity .35s, width .4s;
-    border-left:1px solid var(--line-soft);
-  }
+  .lane{position:relative;flex:1 1 0;border-left:1px solid var(--line-soft)}
   .lane.hidden{display:none}
   #lanes.overview .lane{min-width:120px;max-width:170px}
   #lanes.focus .lane{min-width:360px}
@@ -131,26 +131,32 @@
   .lane-head{
     position:sticky;top:0;z-index:15;height:var(--head-h);
     display:flex;flex-direction:column;justify-content:center;gap:2px;
-    padding:0 14px;overflow:hidden;
+    padding:0 30px 0 14px;overflow:hidden;cursor:pointer;
     border-bottom:1px solid var(--line);
   }
-  .lane-head .art{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.42;z-index:0}
+  .lane-head .art{position:absolute;inset:-14px 0;background-size:cover;background-position:center;opacity:.45;z-index:0;
+    scale:1.15;translate:0 var(--par,0px)}
   .lane-head .veil{position:absolute;inset:0;z-index:1;
-    background:linear-gradient(180deg, rgba(16,14,11,.55), rgba(16,14,11,.82));}
-  .lane-head .nm{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;line-height:1.05;position:relative;z-index:2;text-shadow:0 1px 8px rgba(0,0,0,.8)}
+    background:linear-gradient(180deg, rgba(16,14,11,.55), var(--shade));transition:opacity .3s}
+  .lane-head:hover .veil{opacity:.7}
+  .lane-head .nm{font-family:var(--serif);font-size:19px;font-weight:600;line-height:1.05;position:relative;z-index:2;text-shadow:0 1px 8px rgba(0,0,0,.8)}
   .lane-head .rg{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);opacity:.85;position:relative;z-index:2;text-shadow:0 1px 6px rgba(0,0,0,.9)}
   .lane-head .accent{position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:2px;z-index:3}
+  .story-i{position:absolute;top:8px;right:8px;z-index:3;width:18px;height:18px;border-radius:50%;
+    border:1px solid currentColor;display:grid;place-items:center;
+    font:italic 600 12px/1 var(--serif);opacity:.85}
 
   .lane-body{position:relative;margin-top:6px}
 
-  /* spine */
-  .spine{position:absolute;top:0;bottom:0;left:26px;width:2px;background:linear-gradient(180deg,transparent, var(--line) 4%, var(--line) 96%, transparent)}
+  /* spine: a thin line with light flowing down it, so each lane reads as a river */
+  .spine{position:absolute;top:0;bottom:0;left:25px;width:3px;border-radius:2px;
+    background:linear-gradient(180deg,transparent, var(--line) 2%, var(--line) 98%, transparent);overflow:hidden}
+  .spine::after{content:'';position:absolute;inset:0;opacity:.75;
+    background:linear-gradient(180deg, transparent 0%, var(--c) 45%, #fff6 50%, var(--c) 55%, transparent 100%) 0 0/100% 420px repeat-y}
 
-  /* period band — a slim colored rail + wrapping label, not a hollow box */
-  .period{
-    position:absolute;left:14px;right:8px;border-radius:6px;
-  }
-  .period .p-rail{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:3px}
+  /* period band: a slim colored rail + wrapping label */
+  .period{position:absolute;left:14px;right:8px;border-radius:6px}
+  .period .p-rail{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:3px;transform-origin:top}
   .period .p-lbl{
     position:absolute;top:4px;left:13px;right:6px;font-size:10.5px;letter-spacing:.03em;
     color:var(--ink);opacity:.92;font-weight:600;line-height:1.15;
@@ -158,45 +164,54 @@
   }
   #lanes.overview .period .p-lbl{font-size:9px;left:11px;letter-spacing:0}
 
-  /* event */
+  /* events */
   .event{position:absolute;left:0;right:0}
   .ev-dot{
     position:absolute;left:20px;width:14px;height:14px;border-radius:50%;
-    border:2px solid var(--bg);cursor:pointer;transition:transform .15s, box-shadow .15s;z-index:3;
+    border:2px solid var(--bg);cursor:pointer;transition:transform .15s;z-index:3;
     top:-7px;
   }
+  .ev-dot::after{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid currentColor;opacity:0}
   .ev-dot:hover{transform:scale(1.35)}
   .ev-card{
-    margin-left:52px;margin-right:10px;
+    margin-left:52px;margin-right:10px;cursor:pointer;
     background:linear-gradient(180deg,var(--panel),var(--panel2));
     border:1px solid var(--line-soft);border-radius:11px;padding:12px 14px;
-    opacity:0;transform:translateY(14px);transition:opacity .5s ease, transform .5s ease;
     box-shadow:0 8px 30px rgba(0,0,0,.35);
+    transition:transform .5s var(--ease), border-color .25s, box-shadow .25s;
   }
-  .ev-card.in{opacity:1;transform:none}
-  /* Overview (3+ civilizations): compact image thumbnails so pictures stay visible */
-  #lanes.overview .ev-card{margin-left:12px;margin-right:6px;padding:5px 6px;border-radius:8px}
-  #lanes.overview .ev-ttl,#lanes.overview .ev-desc{display:none}
-  #lanes.overview .ev-yr{font-size:12px}
-  #lanes.overview .ev-img{height:62px;margin-top:4px}
-  #lanes.overview .ev-cap{display:none!important}
-  #lanes.overview .ev-dot{left:1px;width:9px;height:9px;top:-4px}
-  .ev-yr{font-family:'Cormorant Garamond',serif;color:var(--gold);font-size:17px;font-weight:600;line-height:1}
+  .ev-card:hover{border-color:var(--hl,var(--line));box-shadow:0 10px 34px rgba(0,0,0,.45), 0 0 0 1px var(--hl,transparent)}
+  .ev-yr{font-family:var(--serif);color:var(--gold);font-size:17px;font-weight:600;line-height:1}
   .ev-ttl{font-size:14px;font-weight:600;margin:4px 0 5px;color:var(--ink)}
   .ev-desc{font-size:12.5px;line-height:1.5;color:var(--muted);font-weight:300}
-  /* image always reserves its box so card heights are stable for collision packing */
-  .ev-img{
-    width:100%;height:150px;object-fit:cover;border-radius:8px;margin-top:10px;display:block;
-    background:#0d0b09;border:1px solid var(--line-soft);opacity:0;transition:opacity .5s ease;
-  }
-  .ev-img.show{opacity:1}
+  .ev-more{font-size:11px;color:var(--gold-dim);margin-top:6px;letter-spacing:.04em}
+  /* the image box always reserves its height so card heights are stable for packing */
+  .ev-media{margin-top:10px;height:150px;border-radius:8px;overflow:hidden;background:#0d0b09;border:1px solid var(--line-soft)}
+  .ev-img{width:100%;height:100%;object-fit:cover;display:block;transition:scale .8s var(--ease), filter .3s}
+  .ev-card:hover .ev-img{scale:1.06;filter:brightness(1.08)}
+  .ev-cap{font-size:10px;color:var(--gold-dim);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* connector drawn when a card is pushed down off its true date by collision packing */
-  .ev-conn{position:absolute;left:26px;top:0;width:2px;display:none;z-index:1;
+  .ev-conn{position:absolute;left:26px;top:0;width:2px;display:none;z-index:1;transform-origin:top;
     background:linear-gradient(180deg, var(--line), transparent)}
+
+  /* "How it began" card at the top of each lane */
+  .origin-card{border-color:var(--hl);background:linear-gradient(180deg,#241c14,var(--panel))}
+  .origin-card .o-lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:600}
+  .origin-card .o-txt{font-size:12.5px;line-height:1.5;color:var(--ink);font-weight:300;margin-top:6px;
+    display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+
+  /* Overview (3+ civilizations): compact image thumbnails so pictures stay visible */
+  #lanes.overview .ev-card{margin-left:12px;margin-right:6px;padding:5px 6px;border-radius:8px}
+  #lanes.overview .ev-ttl,#lanes.overview .ev-desc,#lanes.overview .ev-more,
+  #lanes.overview .ev-cap,#lanes.overview .o-txt{display:none}
+  #lanes.overview .ev-yr{font-size:12px}
+  #lanes.overview .ev-media{height:62px;margin-top:4px}
+  #lanes.overview .ev-dot{left:1px;width:9px;height:9px;top:-4px}
   #lanes.overview .ev-conn{left:5px}
-  .ev-cap{font-size:10px;color:var(--gold-dim);margin-top:5px;display:none}
-  .ev-cap.show{display:block}
-  @keyframes fade{from{opacity:0}to{opacity:1}}
+  #lanes.overview .origin-card .o-lbl{font-size:8.5px;letter-spacing:.08em}
+  #lanes.overview .story-i{display:none}
+  #lanes.overview .lane-head{padding-right:8px}
+  #lanes.overview .lane-head .nm{overflow-wrap:anywhere}
 
   /* overview hover tooltip */
   #tip{
@@ -204,54 +219,92 @@
     background:rgba(20,16,12,.97);border:1px solid var(--line);border-radius:8px;
     padding:8px 11px;max-width:240px;box-shadow:0 10px 30px rgba(0,0,0,.5);
   }
-  #tip .ty{color:var(--gold);font-size:12px;font-weight:600;font-family:'Cormorant Garamond',serif}
+  #tip .ty{color:var(--gold);font-size:12px;font-weight:600;font-family:var(--serif)}
   #tip .tt{font-size:12px;color:var(--ink);margin-top:2px}
 
-  /* detail drawer */
+  /* detail drawer: used for both an event and a whole civilization's story */
   #drawer{
-    position:fixed;top:0;right:0;bottom:0;width:min(420px,92vw);z-index:70;
+    position:fixed;top:0;right:0;bottom:0;width:min(440px,94vw);z-index:70;
     background:linear-gradient(180deg,#1a1510,#120f0b);border-left:1px solid var(--line);
-    transform:translateX(102%);transition:transform .38s cubic-bezier(.6,.02,.2,1);
+    transform:translateX(102%);transition:transform .45s cubic-bezier(.6,.02,.2,1);
     box-shadow:-20px 0 60px rgba(0,0,0,.5);display:flex;flex-direction:column;
+    padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
   }
   #drawer.open{transform:none}
   #drawer .d-top{padding:22px 24px 14px;border-bottom:1px solid var(--line-soft);position:relative}
-  #drawer .d-close{position:absolute;top:16px;right:18px;cursor:pointer;color:var(--muted);font-size:22px;line-height:1}
+  #drawer .d-close{position:absolute;top:12px;right:12px;cursor:pointer;color:var(--muted);font-size:24px;line-height:1;
+    background:none;border:0;padding:6px 10px;font-family:var(--sans)}
   #drawer .d-close:hover{color:var(--gold)}
-  #drawer .d-civ{font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px}
-  #drawer .d-yr{font-family:'Cormorant Garamond',serif;font-size:34px;color:var(--gold);line-height:1}
-  #drawer .d-ttl{font-size:18px;font-weight:600;margin-top:6px}
-  #drawer .d-body{padding:20px 24px;overflow:auto;flex:1}
-  #drawer .d-img{width:100%;height:210px;object-fit:cover;border-radius:10px;background:#0d0b09;border:1px solid var(--line-soft);margin-bottom:14px}
-  #drawer .d-desc{font-size:14px;line-height:1.65;color:var(--ink);font-weight:300}
-  #drawer .d-cap{font-size:11px;color:var(--muted);margin-top:14px}
-  #drawer .d-loading{font-size:12px;color:var(--muted);font-style:italic}
+  #drawer .d-civ{font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px;padding-right:36px}
+  #drawer .d-yr{font-family:var(--serif);font-size:34px;color:var(--gold);line-height:1}
+  #drawer .d-ttl{font-size:18px;font-weight:600;margin-top:6px;text-wrap:balance}
+  #drawer .d-body{padding:20px 24px 32px;overflow:auto;flex:1}
+  #drawer .d-img{width:100%;height:220px;object-fit:cover;border-radius:10px;background:#0d0b09;border:1px solid var(--line-soft);display:block}
+  #drawer .d-cap{font-size:11px;color:var(--muted);margin:8px 0 16px}
+  #drawer .d-text p{font-size:14px;line-height:1.65;color:var(--ink);font-weight:300;margin:0 0 12px;max-width:62ch}
+  #drawer .d-text h3{font-family:var(--serif);font-size:20px;font-weight:600;margin:18px 0 6px;color:var(--gold)}
+  #drawer .d-link{display:inline-block;margin-top:6px;font-size:13px}
+  #drawer .moments{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:2px}
+  #drawer .moments button{all:unset;cursor:pointer;display:grid;grid-template-columns:86px 1fr;gap:10px;
+    padding:7px 8px;border-radius:7px;font-size:13px;line-height:1.35;width:100%;box-sizing:border-box}
+  #drawer .moments button:hover,#drawer .moments button:focus-visible{background:rgba(232,192,90,.08)}
+  #drawer .moments .m-yr{font-family:var(--serif);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
 
   footer{
     position:fixed;bottom:0;left:0;right:0;z-index:30;pointer-events:none;
     text-align:center;font-size:11px;color:var(--muted);
-    padding:8px;background:linear-gradient(0deg,rgba(16,14,11,.9),transparent);
+    padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px));background:linear-gradient(0deg,rgba(16,14,11,.9),transparent);
   }
-  footer a{pointer-events:auto}
 
-  /* intro */
+  /* intro: plays once, then lifts to reveal the timeline */
   #intro{
     position:fixed;inset:0;z-index:90;background:radial-gradient(circle at 50% 40%, #1c1610, #0c0a08);
     display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
-    transition:opacity .8s;padding:24px;
+    transition:opacity .9s ease, visibility .9s;padding:24px;cursor:pointer;
   }
-  #intro.gone{opacity:0;pointer-events:none}
-  #intro h2{font-family:'Cormorant Garamond',serif;font-size:clamp(30px,6vw,58px);color:var(--gold);margin:0;font-weight:600;letter-spacing:.02em}
-  #intro p{color:var(--muted);max-width:560px;line-height:1.7;margin:18px 0 26px;font-weight:300}
-  #intro .enter{border:1px solid var(--gold);color:var(--gold);background:transparent;padding:12px 30px;border-radius:26px;cursor:pointer;font-size:14px;letter-spacing:.14em;text-transform:uppercase;transition:.25s}
-  #intro .enter:hover{background:var(--gold);color:#120f08}
-  .glow{animation:pulse 4s ease-in-out infinite}
-  @keyframes pulse{0%,100%{text-shadow:0 0 30px rgba(232,192,90,.15)}50%{text-shadow:0 0 55px rgba(232,192,90,.4)}}
+  #intro.gone{opacity:0;visibility:hidden;pointer-events:none}
+  #intro h2{font-family:var(--serif);font-size:clamp(34px,7vw,64px);color:var(--gold);margin:0;font-weight:600;letter-spacing:.03em}
+  #intro h2 span{display:inline-block}
+  #intro p{color:var(--muted);max-width:520px;line-height:1.7;margin:16px 0 0;font-weight:300}
+  #intro .skip{margin-top:22px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-dim)}
+
+  /* ---------- Motion (only when the viewer hasn't asked for less) ---------- */
+  @media (prefers-reduced-motion: no-preference){
+    .spine::after{animation:flow 7s linear infinite}
+    .ev-dot::after{animation:ping 3.6s ease-out infinite;animation-delay:var(--d,0s)}
+    .lane-head .art{animation:drift 24s ease-in-out infinite alternate}
+    .event,.period{transition:top .6s var(--ease), height .6s var(--ease)}
+    .ev-card.seen{animation:cardIn .7s var(--ease) both}
+    .ev-conn{animation:grow .5s var(--ease) both}
+
+    #intro h2 span{animation:rise .9s var(--ease) both;animation-delay:calc(var(--k) * 45ms + .1s)}
+    #intro p{animation:fadeUp 1s var(--ease) .8s both}
+    #intro .skip{animation:fadeUp 1s var(--ease) 1.4s both}
+
+    body.entering .lane{animation:laneIn .9s var(--ease) both;animation-delay:calc(var(--i) * 110ms)}
+    body.entering .p-rail{animation:grow 1.4s var(--ease) both;animation-delay:calc(var(--i) * 110ms + .35s)}
+    body.entering #ruler{animation:fadeUp .9s var(--ease) both}
+    .lane.pop{animation:laneIn .55s var(--ease) both}
+
+    #drawer.open .d-anim>*{animation:fadeUp .55s var(--ease) both}
+    #drawer.open .d-anim>*:nth-child(2){animation-delay:.06s}
+    #drawer.open .d-anim>*:nth-child(3){animation-delay:.12s}
+    #drawer.open .d-anim>*:nth-child(4){animation-delay:.18s}
+    #drawer.open .d-anim>*:nth-child(n+5){animation-delay:.24s}
+  }
+  @keyframes flow{to{background-position:0 420px}}
+  @keyframes ping{0%{scale:.6;opacity:.7}70%,100%{scale:1.9;opacity:0}}
+  @keyframes drift{from{scale:1.15}to{scale:1.28}}
+  @keyframes cardIn{from{opacity:.2;translate:0 22px}to{opacity:1;translate:0 0}}
+  @keyframes grow{from{scale:1 0}to{scale:1 1}}
+  @keyframes rise{from{opacity:0;translate:0 .5em;filter:blur(6px)}to{opacity:1;translate:0 0;filter:blur(0)}}
+  @keyframes fadeUp{from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}
+  @keyframes laneIn{from{opacity:0;translate:0 60px}to{opacity:1;translate:0 0}}
 
   /* ---------- Mobile / small screens ---------- */
   @media (max-width:680px){
     :root{--ruler-w:52px}
-    header{padding:10px 14px 18px}
+    header{padding:calc(10px + env(safe-area-inset-top,0px)) 14px 18px}
     h1{font-size:19px}
     h1 .sub{display:none}
     .controls{gap:10px;margin-top:9px}
@@ -264,15 +317,15 @@
     .lane-head .nm{font-size:16px}
     .lane-head .rg{font-size:9.5px}
     #lanes.focus .lane{min-width:78vw}
-    #lanes.focus.solo .lane{min-width:88vw}
+    #lanes.focus.solo .lane{min-width:84vw}
     #lanes.overview .lane{min-width:92px;max-width:120px}
     .ev-card{margin-left:44px}
-    .ev-img{height:130px}
+    .ev-media{height:130px}
     .ev-dot{width:16px;height:16px;top:-8px}
-    footer{font-size:10px;padding:6px}
+    footer{font-size:10px}
+    footer .f-more{display:none}
   }
   @media (max-width:680px) and (hover:none){
-    /* bigger tap target on touch devices */
     .ev-dot{width:18px;height:18px;top:-9px}
   }
 </style>
@@ -283,8 +336,8 @@
 <header>
   <div class="title-row">
     <h1>Rivers of Time<span class="sub">civilizations in parallel</span></h1>
-    <div id="era"><span class="yr">—</span><span class="lbl"></span></div>
-    <button id="collapseBtn" class="collapse-btn" title="Hide/show filters">Hide filters ▲</button>
+    <div id="era" aria-live="off"><span class="yr">—</span><span class="lbl"></span></div>
+    <button id="collapseBtn" class="collapse-btn" title="Hide or show the filters">Hide filters ▲</button>
   </div>
   <div class="controls">
     <div class="chip-wrap" id="chips"></div>
@@ -292,12 +345,12 @@
     <button class="btn" id="allBtn">All</button>
     <button class="btn" id="noneBtn">Clear</button>
     <div class="sep"></div>
-    <label class="zoom">Zoom
+    <label class="zoom" for="zoom">Zoom
       <input type="range" id="zoom" min="0.45" max="6" step="0.05" value="0.7">
     </label>
-    <button class="btn" id="spaceBtn" title="Toggle even spacing vs spacing by number of years">Even spacing</button>
+    <button class="btn" id="spaceBtn" title="Switch between even spacing and spacing by number of years">Even spacing</button>
     <div class="sep"></div>
-    <label class="toggle" title="On: real photos from Wikimedia (AI art as fallback). Off: AI-generated art only."><input type="checkbox" id="imgToggle" checked> Web photos</label>
+    <label class="toggle" for="imgToggle" title="On: real photos, with AI art where there is none. Off: AI-generated art only."><input type="checkbox" id="imgToggle" checked> Real photos</label>
   </div>
 </header>
 
@@ -310,29 +363,22 @@
 
 <div id="tip"><div class="ty"></div><div class="tt"></div></div>
 
-<div id="drawer">
+<aside id="drawer" aria-hidden="true">
   <div class="d-top">
-    <div class="d-close" id="dClose">&times;</div>
+    <button class="d-close" id="dClose" aria-label="Close">&times;</button>
     <div class="d-civ" id="dCiv"></div>
     <div class="d-yr" id="dYr"></div>
     <div class="d-ttl" id="dTtl"></div>
   </div>
-  <div class="d-body">
-    <img class="d-img" id="dImg" alt="" style="display:none">
-    <div class="d-loading" id="dLoad" style="display:none">searching Wikimedia for an image…</div>
-    <div class="d-desc" id="dDesc"></div>
-    <div class="d-cap" id="dCap"></div>
-  </div>
-</div>
+  <div class="d-body d-anim" id="dBody"></div>
+</aside>
 
-<footer>4000&nbsp;BCE → today · spacing: <b>Even</b> (toggle “By years” for true‑linear time). Photos from
-  <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a>; AI art fills gaps. Select 1–2 civilizations to compare closely.</footer>
+<footer>Tap a civilization’s name for its story<span class="f-more"> · 4000&nbsp;BCE → today · photos: Wikimedia Commons contributors; AI art fills the gaps</span></footer>
 
-<div id="intro">
-  <h2 class="glow">Rivers of Time</h2>
-  <p>Nine civilizations, one shared river of time — from the first cities of Sumer to the present day.
-     Scroll to travel through the eras; toggle civilizations to compare who rose and fell together.</p>
-  <button class="enter" id="enterBtn">Enter the timeline</button>
+<div id="intro" role="dialog" aria-label="Rivers of Time">
+  <h2 id="introTitle">Rivers of Time</h2>
+  <p>Nine civilizations on one shared timeline, from the first cities of Sumer to the present day.</p>
+  <div class="skip">Tap to enter</div>
 </div>
 
 <script>
@@ -620,16 +666,128 @@ const MODERN = {
 };
 CIVS.forEach(c=>{ const m=MODERN[c.id]; if(m){ c.periods=c.periods.concat(m.periods); c.events=c.events.concat(m.events); } });
 
+/* ---- The story of each civilization: how it began, its land, peak, fall and legacy ---- */
+const STORY = {
+  meso:{ start:-4000,
+    origin:'Farmers had irrigated the plain between the Tigris and Euphrates since about 6000 BCE. Around 4000 BCE their villages grew into temple towns, and Uruk became the first true city, with tens of thousands of people, full-time priests, craftsmen and scribes.',
+    land:'A flat, hot river plain with little rain, stone or timber. Everything depended on canals that carried river water to the fields, and on trade for metal and wood.',
+    peak:'Sumerian city-states invented writing, the wheel, the 60-minute hour and written law. Akkad, Babylon and Assyria each built empires on that foundation.',
+    fall:'After Persia took Babylon in 539 BCE the region was ruled by outsiders for centuries. It revived as the heart of the Abbasid Caliphate before the Mongol sack of 1258.',
+    legacy:'Writing, cities, the 360-degree circle, the seven-day week and some of the oldest stories in the world, such as the Epic of Gilgamesh.' },
+  egypt:{ start:-4000,
+    origin:'As North Africa dried out after about 5000 BCE, people moved into the narrow Nile valley, where the yearly flood left fresh black soil. Rival chiefdoms in Upper and Lower Egypt grew richer, until around 3100 BCE a ruler of the south, remembered as Narmer, united the two lands.',
+    land:'A thin green strip along the Nile, with desert on both sides. The flood was so regular that Egyptians built their calendar around it.',
+    peak:'The Old Kingdom built the pyramids; the New Kingdom of Hatshepsut, Akhenaten and Ramesses II stretched from Sudan to Syria.',
+    fall:'Libyan, Nubian, Assyrian and Persian rulers took turns after 1000 BCE. Alexander arrived in 332 BCE, and Cleopatra’s death in 30 BCE made Egypt a Roman province.',
+    legacy:'Monumental stone architecture, the 365-day calendar, papyrus and an alphabet whose signs passed, through Phoenician, into ours.' },
+  indus:{ start:-3300,
+    origin:'Farming villages appeared at Mehrgarh, west of the Indus, by 7000 BCE. Over thousands of years they spread onto the river plains, and by about 2600 BCE they had become large planned cities such as Harappa and Mohenjo-daro.',
+    land:'The floodplains of the Indus and the now-dry Ghaggar-Hakra river, in today’s Pakistan and north-west India. Monsoon rains and snowmelt from the Himalaya fed the rivers.',
+    peak:'More than a thousand settlements shared standard bricks, weights and seals. The cities had grid streets, covered drains and private bathrooms, with no sign of palaces or great temples.',
+    fall:'From about 1900 BCE the cities shrank, probably as the monsoon weakened and rivers moved. People spread east into smaller villages. India’s later empires, from the Maurya to the Mughals, grew from this land.',
+    legacy:'Urban planning and sanitation far ahead of their time. Their script is still undeciphered.' },
+  china:{ start:-2070,
+    origin:'Millet farmers settled the Yellow River valley by 7000 BCE and rice farmers the Yangtze. Neolithic cultures such as Yangshao and Longshan grew into walled towns, and the bronze-age city at Erlitou (about 1900 BCE) is often linked with the first dynasty, the Xia.',
+    land:'The loess plains of the Yellow River in the north and the wetter Yangtze valley in the south, cut off from other early civilizations by mountains, deserts and sea.',
+    peak:'The Han and Tang dynasties ran some of the largest and richest states on earth, with exams for officials, paper, printing and the Silk Road.',
+    fall:'Dynasties rose and fell in a long cycle for over 3,000 years. Imperial rule ended in 1912; China then became a republic and, from 1949, the People’s Republic.',
+    legacy:'The longest continuous written tradition in the world, along with paper, printing, the compass, gunpowder and Confucian ideas of government.' },
+  greece:{ start:-2000,
+    origin:'Bronze-age palaces grew on Crete (the Minoans, from about 2000 BCE) and then on the mainland at Mycenae. After those palaces collapsed around 1100 BCE, Greek communities slowly rebuilt as independent city-states and adopted the Phoenician alphabet.',
+    land:'Rocky peninsulas and hundreds of islands, with little farmland. The sea was the main road, so Greeks became traders and colonists from Spain to the Black Sea.',
+    peak:'Classical Athens in the 400s BCE produced democracy, the Parthenon, drama and philosophy. Alexander then carried Greek culture as far as India.',
+    fall:'Rome conquered Greece by 146 BCE, but Greek remained the language of the eastern Mediterranean and of the Byzantine Empire until 1453.',
+    legacy:'Democracy, philosophy, theatre, history-writing, geometry and the Olympic Games.' },
+  rome:{ start:-753,
+    origin:'Latin-speaking villages on hills beside the Tiber merged into a town by the 700s BCE; legend says Romulus founded it in 753 BCE. Its Etruscan kings were thrown out in 509 BCE and the Romans set up a republic.',
+    land:'Central Italy, at a river crossing on the main route between Etruria and the south. From there Rome expanded to control the whole Mediterranean.',
+    peak:'Around 117 CE, under Trajan, the empire ran from Scotland to Iraq, linked by roads, aqueducts and one law.',
+    fall:'The western empire broke up under civil war, economic strain and migrating peoples, ending in 476 CE. The eastern half, Byzantium, lasted until 1453.',
+    legacy:'Roman law, the Latin alphabet, the Romance languages, concrete, the calendar and the Catholic Church.' },
+  persia:{ start:-550,
+    origin:'Iranian-speaking peoples moved onto the Iranian plateau around 1000 BCE. The Medes built a kingdom there, and in 550 BCE Cyrus, a Persian vassal king, overthrew them and began the Achaemenid Empire.',
+    land:'A high plateau ringed by mountains, from the Zagros to the Hindu Kush. It sits on the land routes between Mesopotamia, India and Central Asia.',
+    peak:'Under Darius I the Achaemenid Empire ruled about 44% of the world’s people, with a royal road, coinage and local self-rule for many peoples.',
+    fall:'Alexander ended the Achaemenids in 330 BCE, but Persian empires returned under the Parthians and Sasanians until the Arab conquest of 651 CE.',
+    legacy:'A model of tolerant multi-ethnic empire, Zoroastrianism, Persian poetry and art, and a language that is still spoken in Iran today.' },
+  meso_am:{ start:-1500,
+    origin:'People in Mexico domesticated maize, beans and squash between about 7000 and 3000 BCE. Farming villages on the Gulf Coast became the first Olmec ceremonial centres around 1500 BCE.',
+    land:'A varied land of tropical lowlands, highland valleys and volcanoes, from central Mexico to Honduras, with no draft animals and no wheeled carts.',
+    peak:'Classic Maya cities (250–900 CE) and huge Teotihuacan had writing, an accurate calendar and a concept of zero. The Aztec capital Tenochtitlan later held about 200,000 people.',
+    fall:'Many Maya cities emptied after 900 CE. The Aztec Empire fell to Spanish forces and their native allies in 1521, and disease killed most of the population.',
+    legacy:'Maize, chocolate, tomatoes and chilli, the Maya calendar and writing, and the Indigenous cultures of modern Mexico and Central America.' },
+  andes:{ start:-3000,
+    origin:'At Caral, near the Peruvian coast, people built pyramids and plazas around 3000 BCE, about when Egypt was unified. They lived on fish and cotton, and Caral is the oldest known city in the Americas.',
+    land:'A dry coastal desert, steep river valleys and high mountain plateaus, all within a few hundred kilometres. People farmed on terraces and herded llamas and alpacas.',
+    peak:'The Inca Empire of the 1400s ran 4,000 km along the Andes, with about 40,000 km of roads, and kept records on knotted cords called khipu.',
+    fall:'Civil war and smallpox weakened the Inca just before Pizarro arrived. Spain took Cusco in 1533; Peru became independent in 1821.',
+    legacy:'Potatoes, quinoa, terrace farming, freeze-dried food, superb stonework and the Quechua language, still spoken by millions.' }
+};
+
+/* ---- Extra events that fill thin stretches (appended, so existing art indices stay valid) ---- */
+const EXTRA = {
+  meso:[
+    {y:-2700,t:'Gilgamesh, king of Uruk',wiki:'Gilgamesh',d:'A historical king of Uruk who becomes the hero of the Epic of Gilgamesh, one of the oldest surviving works of literature.'},
+    {y:-2600,t:'Royal tombs of Ur',wiki:'Royal_Cemetery_at_Ur',d:'Rulers of Ur are buried with gold helmets, lyres and their attendants, showing the wealth of the Sumerian cities.'}],
+  egypt:[
+    {y:-2667,t:'Step Pyramid of Djoser',wiki:'Pyramid_of_Djoser',d:'The architect Imhotep stacks six stone platforms into the first large stone building in the world.'},
+    {y:-1478,t:'Hatshepsut rules as pharaoh',wiki:'Hatshepsut',d:'One of Egypt’s few female pharaohs, Hatshepsut sends trade fleets to Punt and builds her terraced temple at Deir el-Bahari.'},
+    {y:-1353,t:'Akhenaten and Amarna',wiki:'Akhenaten',d:'Akhenaten replaces the old gods with the sun-disc Aten and builds a new capital at Amarna. His successors undo it all.'}],
+  indus:[
+    {y:-2400,t:'Indus seals and script',wiki:'Indus_script',d:'Thousands of small stamp seals carry animal images and short inscriptions in a script nobody has yet deciphered.'}],
+  china:[
+    {y:-500,t:'The Art of War',wiki:'The_Art_of_War',d:'The strategy book credited to Sun Tzu is written in an age of constant war between Chinese states.'},
+    {y:-475,t:'Warring States period',wiki:'Warring_States_period',d:'Seven large states fight for supremacy for 250 years, driving advances in iron, law, philosophy and army organisation.'}],
+  greece:[
+    {y:-1700,t:'Palace of Knossos',wiki:'Knossos',d:'The Minoans of Crete build a vast palace with frescoes, light wells and running water, the setting of the later Minotaur legend.'},
+    {y:-1177,t:'Bronze Age collapse',wiki:'Late_Bronze_Age_collapse',d:'Within a few decades the Mycenaean palaces, the Hittite Empire and many eastern cities are destroyed, and Greece enters a dark age.'}],
+  rome:[
+    {y:-218,t:'Hannibal crosses the Alps',wiki:'Hannibal',d:'Carthage’s general marches war elephants over the Alps and wins great victories in Italy, but Rome fights on and wins the war.'},
+    {y:117,t:'Empire at its height',wiki:'Trajan',d:'Under Trajan the empire reaches its greatest size, from Britain to Mesopotamia.'}],
+  persia:[
+    {y:-1000,t:'Zoroaster’s teaching',wiki:'Zoroastrianism',d:'The prophet Zoroaster teaches a struggle between truth and the lie. His faith becomes the religion of the Persian kings.'}],
+  meso_am:[
+    {y:683,t:'Pakal of Palenque',wiki:'Palenque',d:'The Maya king Pakal the Great is buried inside the Temple of the Inscriptions, under a carved stone lid.'}],
+  andes:[
+    {y:-2600,t:'Caral, first city of the Americas',wiki:'Caral',d:'On Peru’s Supe valley, people build pyramids and sunken plazas at Caral, the oldest known city in the Americas.'}]
+};
+
+/* ---- Longer write-ups shown in the event panel ("read more"), keyed by event title ---- */
+const MORE = {
+  'First cities & writing':'Writing began as bookkeeping: tokens and pictures pressed into clay to record grain, beer and sheep owed to the temple. Within a few centuries scribes were using the same wedge-shaped signs to write laws, letters and poetry.',
+  'Code of Hammurabi':'The 2.25-metre stele lists 282 laws, from building standards to divorce. Penalties depended on social class, but the king presented the code as protection for the weak against the strong.',
+  'Unification under Narmer':'The Narmer Palette shows the king wearing the white crown of the south on one side and the red crown of the north on the other. Pharaohs wore the double crown ever after.',
+  'Great Pyramid of Giza':'Built for Khufu around 2560 BCE from about 2.3 million blocks, it was the tallest building on earth for nearly 4,000 years. Workers’ villages nearby show it was built by paid, organised crews, not slaves.',
+  'Tutankhamun':'A minor king who died at about 19. He is famous because Howard Carter found his tomb almost untouched in 1922, with more than 5,000 objects inside.',
+  'The Rosetta Stone':'The same decree is written in hieroglyphs, Demotic and Greek. Using the Greek as a key, Jean-François Champollion deciphered hieroglyphs in 1822.',
+  'Mohenjo-daro & Harappa':'Mohenjo-daro may have held 40,000 people. Almost every house had a bathing area connected to covered street drains, a level of sanitation many cities did not reach again until the 1800s.',
+  'Qin unifies China':'Qin Shi Huang standardised writing, coins, weights and axle widths, and linked older border walls. More than 8,000 life-size clay soldiers guard his tomb.',
+  'Athenian democracy':'Citizens voted directly in the Assembly and many offices were filled by lottery. Women, slaves and foreigners, most of the population, could not take part.',
+  'Alexander the Great':'In just 13 years Alexander conquered from Greece to India and founded about 20 cities named Alexandria. He died in Babylon at 32.',
+  'Fall of Western Rome':'In 476 the general Odoacer deposed the boy emperor Romulus Augustulus and did not appoint a new one. Few people at the time saw it as the end of an era.',
+  'Cyrus & the Achaemenids':'Cyrus let peoples keep their own gods and customs. The Cyrus Cylinder records him allowing deported peoples, including the Jews in Babylon, to return home.',
+  'The Inca Empire':'The Inca called their empire Tawantinsuyu, “the four parts together”. Relay runners carried messages along the roads up to 240 km a day.',
+  'Founding of Tenochtitlan':'Aztec legend says they were told to settle where they saw an eagle on a cactus. That image is now on Mexico’s flag.'
+};
+
+CIVS.find(c=>c.id==='andes').periods.unshift({name:'Norte Chico (Caral)',s:-3000,e:-1800});
+CIVS.forEach(c=>{
+  Object.assign(c, STORY[c.id]||{});
+  if(EXTRA[c.id]) c.events = c.events.concat(EXTRA[c.id]);
+  c.events.forEach(ev=>{ if(MORE[ev.t]) ev.more = MORE[ev.t]; });
+});
+
+/* IMG-INDEX */ const IMG = {"wiki":{"achaemenid-empire":{"a":"Cattette","l":"CC BY 4.0","p":"Achaemenid Empire"},"akhenaten":{"a":"","l":"CC BY-SA 2.5","p":"Akhenaten"},"akkadian-empire":{"a":"Middle_East_topographic_map-blank.svg: Sémhur (talk) derivative work: Zunkir (talk)","l":"CC BY-SA 3.0","p":"Akkadian Empire"},"alexander-the-great":{"a":"Unknown authorUnknown author","l":"Public domain","p":"Alexander the Great"},"ancient-olympic-games":{"a":"Bgabel","l":"CC BY-SA 3.0","p":"Ancient Olympic Games"},"ashoka":{"a":"Photo Dharma from Sadao, Thailand","l":"CC BY 2.0","p":"Ashoka"},"assyria":{"a":"Austen Henry Layard (1817–1894)","l":"Public domain","p":"Assyria"},"athenian-democracy":{"a":"Philipp Foltz","l":"Public domain","p":"Athenian democracy"},"augustus":{"a":"Justin Benttinen","l":"CC BY-SA 4.0","p":"Augustus"},"baghdad":{"a":"USACE HQ , JIM GORDAN, CIV, USACE","l":"Public domain","p":"Baghdad"},"battle-of-gaugamela":{"a":"Pietro da Cortona","l":"Public domain","p":"Battle of Gaugamela"},"british-raj":{"a":"Edinburgh Geographical Institute; J. G. Bartholomew and Sons.","l":"Public domain","p":"British Raj"},"byzantine-empire":{"a":"Mnohohrishnyi","l":"CC0","p":"Byzantine Empire"},"cai-lun":{"a":"Unknown authorUnknown author","l":"Public domain","p":"Cai Lun"},"cairo":{"a":"Jorge Láscar from Melbourne, Australia","l":"CC BY 2.0","p":"Cairo"},"caral":{"a":"Jon Gudorf Photography","l":"CC BY-SA 2.0","p":"Caral"},"charlemagne":{"a":"Charlemagne. Autorité émettrice de monnaie indéterminé. Atelier monétaire. Émetteur","l":"Public domain","p":"Charlemagne"},"chavin-culture":{"a":"QQuantum","l":"CC BY-SA 4.0","p":"Chavín culture"},"chinese-communist-revolution":{"a":"Unknown authorUnknown author","l":"Public domain","p":"Chinese Communist Revolution"},"chinese-economic-reform":{"a":"张元柏","l":"CC BY-SA 3.0","p":"Reform and opening up"},"cleopatra":{"a":"Louis le Grand","l":"Public domain","p":"Cleopatra"},"code-of-hammurabi":{"a":"Mbzt","l":"CC BY 3.0","p":"Code of Hammurabi"},"colosseum":{"a":"FeaturedPics","l":"CC BY-SA 4.0","p":"Colosseum"},"confucius":{"a":"Unknown authorUnknown author","l":"Public domain","p":"Confucius"},"cuneiform":{"a":"Bjørn Christian Tørrissen","l":"CC BY-SA 3.0","p":"Cuneiform"},"cyrus-the-great":{"a":"Surenae","l":"CC BY-SA 4.0","p":"Cyrus the Great"},"darius-the-great":{"a":"Rumlu","l":"Public domain","p":"Darius the Great"},"edict-of-milan":{"a":"Marie-Lan Nguyen","l":"Public domain","p":"Edict of Milan"},"egyptian-revolution-of-2011":{"a":"Mona","l":"CC BY 2.0","p":"2011 Egyptian revolution"},"fall-of-constantinople":{"a":"DimiTalen","l":"CC0","p":"Fall of Constantinople"},"fall-of-tenochtitlan":{"a":"Unknown authorUnknown author","l":"Public domain","p":"Fall of Tenochtitlan"},"fall-of-the-western-roman-empire":{"a":"Roke (d)","l":"CC BY-SA 3.0","p":"Fall of the Western Roman Empire"},"founding-of-rome":{"a":"Rabax63","l":"CC BY-SA 4.0","p":"Founding of Rome"},"gilgamesh":{"a":"editor Austen Henry Layard , drawing by L. Gruner","l":"Public domain","p":"Gilgamesh"},"great-bath":{"a":"The original uploader was M.Imran at English Wikipedia.","l":"CC SA 1.0","p":"Great Bath"},"great-pyramid-of-giza":{"a":"Douwe C. van der Zee","l":"CC BY-SA 4.0","p":"Great Pyramid of Giza"},"greek-war-of-independence":{"a":"SJCAmerican","l":"CC BY-SA 4.0","p":"Greek War of Independence"},"han-dynasty":{"a":"DannamEmpire","l":"CC BY 4.0","p":"Han dynasty"},"hannibal":{"a":"Fratelli Alinari","l":"Public domain","p":"Hannibal"},"hatshepsut":{"a":"","l":"CC0","p":"Hatshepsut"},"inca-empire":{"a":"Made and uploaded by Huhsunqu.","l":"CC BY-SA 2.5","p":"Inca Empire"},"indus-script":{"a":"PHGCOM IndusValleySeals.JPG","l":"CC BY-SA 3.0","p":"Indus script"},"indus-valley-civilisation":{"a":"Avantiputra7","l":"CC BY-SA 3.0","p":"Indus Valley Civilisation"},"iranian-revolution":{"a":"Unknown authorUnknown author","l":"GFDL","p":"Iranian Revolution"},"iraq-war":{"a":"Technical Sergeant John L. Houghton, Jr., United States Air Force","l":"Public domain","p":"Iraq War"},"italian-renaissance":{"a":"","l":"CC BY 2.5","p":"Italian Renaissance"},"italian-unification":{"a":"Baldassare Verazzi (1819-1886)","l":"Public domain","p":"Unification of Italy"},"julius-caesar":{"a":"Ángel M. Felicísimo from Mérida, España","l":"Public domain","p":"Julius Caesar"},"kingdom-of-egypt":{"a":"Mysid","l":"Public domain","p":"Kingdom of Egypt"},"kingdom-of-iraq":{"a":"","l":"Public domain","p":"Kingdom of Iraq"},"knossos":{"a":"Eric Gaba (Sting)","l":"CC BY-SA 4.0","p":"Knossos"},"la-venta":{"a":"Alfonsobouchot","l":"Public domain","p":"La Venta"},"late-bronze-age-collapse":{"a":"Alexikoua","l":"CC BY-SA 3.0","p":"Late Bronze Age collapse"},"machu-picchu":{"a":"Draceane","l":"CC BY-SA 4.0","p":"Machu Picchu"},"maya-civilization":{"a":"Kmusser","l":"CC BY-SA 3.0","p":"Maya civilization"},"mentuhotep-ii":{"a":"Prof. Mortel","l":"CC BY 2.0","p":"Mentuhotep II"},"mexican-revolution":{"a":"Osuna","l":"CC BY-SA 3.0","p":"Mexican Revolution"},"mexican-war-of-independence":{"a":"Hpav7","l":"Public domain","p":"Mexican War of Independence"},"mexico-city":{"a":"Gobierno CDMX","l":"CC0","p":"Mexico City"},"moche-culture":{"a":"QQuantum","l":"CC BY-SA 4.0","p":"Moche culture"},"mohenjo-daro":{"a":"Saqib Qayyum","l":"CC BY-SA 3.0","p":"Mohenjo-daro"},"mughal-empire":{"a":"Justus Perthes, Gotha./Charles Joppen","l":"GFDL","p":"Mughal Empire"},"muslim-conquest-of-egypt":{"a":"Mohammad Adil (talk)","l":"CC BY-SA 3.0","p":"Arab conquest of Egypt"},"muslim-conquest-of-persia":{"a":"Javierfv1212 and edited by HistoryofIran.","l":"Public domain","p":"Muslim conquest of Persia"},"mycenaean-greece":{"a":"User:Alexikoua, User:Panthera tigris tigris, TL User:Reedside","l":"CC BY-SA 3.0","p":"Mycenaean Greece"},"narmer":{"a":"","l":"Public domain","p":"Narmer"},"olmec":{"a":"","l":"CC BY 3.0","p":"Olmecs"},"ottoman-iraq":{"a":"User:Orwellianist","l":"Public domain","p":"Ottoman Iraq"},"pahlavi-dynasty":{"a":"Pouyajabbarisani","l":"CC0","p":"Pahlavi dynasty"},"palenque":{"a":"Ricraider","l":"CC BY-SA 3.0","p":"Palenque"},"parthenon":{"a":"Steve Swayne","l":"CC BY 2.0","p":"Parthenon"},"parthian-empire":{"a":"Original file by Ro4444, edited by me","l":"CC BY-SA 4.0","p":"Parthian Empire"},"partition-of-india":{"a":"John George Bartholomew","l":"Public domain","p":"Partition of India"},"peruvian-war-of-independence":{"a":"LLs","l":"CC BY-SA 4.0","p":"Peruvian War of Independence"},"pyramid-of-djoser":{"a":"Olaf Tausch","l":"CC BY 3.0","p":"Pyramid of Djoser"},"qin-shi-huang":{"a":"Unknown (18??–18??)","l":"Public domain","p":"Qin Shi Huang"},"ramesses-ii":{"a":"Pbuergler","l":"CC BY-SA 3.0","p":"Ramesses II"},"roman-greece":{"a":"Drawn by F. W. Putzger, A. Baldamus and E. Schwabe, uploaded to Wikimedia Commons by User:","l":"CC BY-SA 4.0","p":"Greece in the Roman era"},"roman-republic":{"a":"Ifly6","l":"CC BY-SA 4.0","p":"Roman Republic"},"rosetta-stone":{"a":"Hans Hillewaert","l":"CC BY-SA 4.0","p":"Rosetta Stone"},"royal-cemetery-at-ur":{"a":"Joint Expedition of the British Museum and of the Museum of the University of Pennsylvania","l":"No restrictions","p":"Royal Cemetery at Ur"},"sasanian-empire":{"a":"Original file by Ro4444, edited by me","l":"CC BY 4.0","p":"Sasanian Empire"},"shahnameh":{"a":"Attributed to Sultan Muhammad","l":"Public domain","p":"Shahnameh"},"shang-dynasty":{"a":"Lamassu Design Gurdjieff (talk)","l":"CC BY-SA 3.0","p":"Shang dynasty"},"siege-of-baghdad-1258":{"a":"Sayf al-vâhidî et al.","l":"Public domain","p":"Siege of Baghdad"},"sistine-chapel-ceiling":{"a":"Antoine Taveneaux","l":"CC BY-SA 3.0","p":"Sistine Chapel ceiling"},"socrates":{"a":"Copy of Lysippos (?)","l":"Public domain","p":"Socrates"},"spanish-conquest-of-the-inca-empire":{"a":"Juan Lepiani","l":"Public domain","p":"Spanish conquest of the Inca Empire"},"suez-canal":{"a":"NASA","l":"Public domain","p":"Suez Canal"},"sumer":{"a":"NASA Overlay: पाटलिपुत्र (talk)","l":"Public domain","p":"Sumer"},"taj-mahal":{"a":"Yann; edited by Jim Carter","l":"CC BY-SA 4.0","p":"Taj Mahal"},"tang-dynasty":{"a":"Kanguole","l":"CC BY-SA 4.0","p":"Tang dynasty"},"tenochtitlan":{"a":"thomas kole","l":"CC BY 4.0","p":"Tenochtitlan"},"teotihuacan":{"a":"Hdlrosa","l":"CC BY-SA 4.0","p":"Teotihuacan"},"the-art-of-war":{"a":"vlasta2, bluefootedbooby on flickr.com","l":"CC BY 2.0","p":"The Art of War"},"trajan":{"a":"Unknown artistUnknown artist","l":"Public domain","p":"Trajan"},"tupac-amaru-ii":{"a":"Unknown authorUnknown author","l":"Public domain","p":"Túpac Amaru II"},"tutankhamun":{"a":"Roland Unger","l":"Public domain","p":"Tutankhamun"},"vatican-city":{"a":"Goran_tek-en","l":"Public domain","p":"Vatican City"},"vedic-period":{"a":"Avantiputra7","l":"CC BY-SA 3.0","p":"Vedic period"},"wari-culture":{"a":"qQuantum","l":"CC BY-SA 4.0","p":"Wari culture"},"warring-states-period":{"a":"Philg88","l":"CC BY-SA 3.0","p":"Warring States period"},"xia-dynasty":{"a":"w:en:User:Gurdjieff (Lamassu Design)","l":"CC BY-SA 3.0","p":"Xia dynasty"},"xinhai-revolution":{"a":"Unknown authorUnknown author","l":"Public domain","p":"1911 Revolution"},"zheng-he":{"a":"Marcin Konsek","l":"CC BY-SA 4.0","p":"Zheng He"},"zhou-dynasty":{"a":"Territories_of_Dynasties_in_China.gif: Ian Kiu","l":"CC BY-SA 3.0","p":"Zhou dynasty"},"ziggurat-of-ur":{"a":"Tla2006 at English Wikipedia","l":"Public domain","p":"Ziggurat of Ur"},"zoroastrianism":{"a":"Bernard Gagnon","l":"CC BY-SA 4.0","p":"Zoroastrianism"}},"ai":["andes-0","andes-1","andes-2","andes-3","andes-4","andes-5","china-0","china-1","china-2","china-3","china-4","china-5","china-6","china-7","china-8","civ-andes","civ-china","civ-egypt","civ-greece","civ-indus","civ-meso","civ-meso_am","civ-persia","civ-rome","egypt-0","egypt-1","egypt-2","egypt-3","egypt-4","egypt-5","egypt-6","egypt-7","greece-0","greece-1","greece-2","greece-3","greece-4","greece-5","greece-6","indus-0","indus-1","indus-2","indus-3","indus-4","meso-0","meso-1","meso-2","meso-3","meso-4","meso-5","meso-6","meso_am-0","meso_am-1","meso_am-2","meso_am-3","meso_am-4","meso_am-5","meso_am-6","persia-0","persia-1","persia-2","persia-3","persia-4","persia-5","rome-0","rome-1","rome-2","rome-3","rome-4","rome-5","rome-6"]};
+
 /* ============================================================ STATE */
 const T_MIN = -4000, T_MAX = 2025;
+const REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 let scaleMul = 0.7;      // global vertical zoom multiplier
 let evenMode = true;     // true = adaptive even spacing, false = proportional (by years)
 let anchors=[], segH=[], cum=[];   // shared piecewise-linear time scale
 let selected = new Set(CIVS.map(c=>c.id));
-let imagesOn = true;
-const imgCache = new Map();
+let photosOn = true;     // prefer real photos; off = AI art first
 
-const stage = document.getElementById('stage');
 const lanesEl = document.getElementById('lanes');
 const rulerInner = document.getElementById('rulerInner');
 const timeline = document.getElementById('timeline');
@@ -647,6 +805,9 @@ function fmtYear(y){
   if(y===0) return '1 CE';
   return y+' CE';
 }
+function hex(c,a){ const n=parseInt(c.slice(1),16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
+function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+
 /* ---------- Adaptive shared time scale ----------
    All lanes share one monotonic year→pixel map, so "same row = same year" holds.
    Even mode gives every gap between anchor years a similar height (kills dead space,
@@ -655,6 +816,7 @@ function clampYr(y){ return Math.max(T_MIN, Math.min(T_MAX, y)); }
 function buildScale(){
   const set=new Set([T_MIN,T_MAX]);
   CIVS.forEach(c=>{
+    set.add(clampYr(c.start));
     c.periods.forEach(p=>{ set.add(clampYr(p.s)); set.add(clampYr(p.e)); });
     c.events.forEach(e=>{ set.add(clampYr(e.y)); });
   });
@@ -662,12 +824,12 @@ function buildScale(){
   segH=[];
   for(let i=0;i<anchors.length-1;i++){
     const gap=anchors[i+1]-anchors[i];
-    segH.push( evenMode ? (46 + 9*Math.log1p(gap)) : gap );  // even: floor + gentle growth
+    segH.push( evenMode ? (46 + 9*Math.log1p(gap)) : gap );
   }
   cum=[0];
   for(let i=0;i<segH.length;i++) cum.push(cum[i]+segH[i]);
 }
-function segIndex(year){ // largest k with anchors[k] <= year
+function segIndex(year){
   let a=0,b=anchors.length-1,k=0;
   while(a<=b){ const m=(a+b)>>1; if(anchors[m]<=year){k=m;a=m+1;} else b=m-1; }
   return Math.min(k, anchors.length-2);
@@ -678,7 +840,7 @@ function yPos(year){
   const frac=(year-anchors[k])/(anchors[k+1]-anchors[k]);
   return (cum[k] + frac*segH[k]) * scaleMul;
 }
-function yearAt(y){   // inverse of yPos
+function yearAt(y){
   const t=y/scaleMul, last=cum[cum.length-1];
   if(t<=0) return T_MIN; if(t>=last) return T_MAX;
   let a=0,b=cum.length-1,k=0;
@@ -689,23 +851,43 @@ function yearAt(y){   // inverse of yPos
 }
 function totalHeight(){ return cum[cum.length-1]*scaleMul; }
 
-/* ---------------- Build chips ---------------- */
+/* ---------- Images: bundled with the page (img/), never fetched from other sites ---------- */
+const slug=t=>t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const AI_SET=new Set(IMG.ai);
+function banner(c){ return AI_SET.has('civ-'+c.id) ? 'img/ai/civ-'+c.id+'.jpg' : ''; }
+function eventImage(ev, c){
+  const key=slug(ev.wiki), cr=IMG.wiki[key];
+  const photo = cr ? {src:'img/wiki/'+key+'.jpg', photo:true, cr} : null;
+  const aiKey = c.id+'-'+ev._i;
+  const art = AI_SET.has(aiKey) ? {src:'img/ai/'+aiKey+'.jpg'} : (banner(c) ? {src:banner(c)} : null);
+  return photosOn ? (photo||art) : (art||photo);
+}
+function caption(im){
+  if(!im) return '';
+  if(!im.photo) return 'AI-generated impression';
+  const who=[im.cr.a, im.cr.l].filter(Boolean).join(' · ');
+  return 'Photo' + (who ? ': '+who : '');
+}
+function wikiUrl(title){ return 'https://en.wikipedia.org/wiki/'+encodeURIComponent(title.replace(/ /g,'_')); }
+
+/* ---------------- Chips ---------------- */
 const chipsEl = document.getElementById('chips');
 CIVS.forEach(c=>{
-  const el = document.createElement('div');
-  el.className='chip on';
-  el.dataset.id=c.id;
-  el.style.background=c.color;
-  el.innerHTML = `<span class="dot" style="background:${c.color}"></span>${c.name}`;
-  el.addEventListener('click', ()=>toggleCiv(c.id));
-  chipsEl.appendChild(el);
+  const b = el('button','chip on');
+  b.dataset.id=c.id; b.type='button';
+  b.style.background=c.color;
+  const d=el('span','dot'); d.style.background=c.color;
+  b.append(d, document.createTextNode(c.name));
+  b.addEventListener('click', ()=>toggleCiv(c.id));
+  chipsEl.appendChild(b);
 });
 function refreshChips(){
-  [...chipsEl.children].forEach(el=>{
-    const on = selected.has(el.dataset.id);
-    const c = CIVS.find(x=>x.id===el.dataset.id);
-    el.classList.toggle('on', on);
-    el.style.background = on ? c.color : 'rgba(255,255,255,.02)';
+  [...chipsEl.children].forEach(b=>{
+    const on = selected.has(b.dataset.id);
+    const c = CIVS.find(x=>x.id===b.dataset.id);
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on);
+    b.style.background = on ? c.color : 'rgba(255,255,255,.02)';
   });
 }
 function toggleCiv(id){
@@ -719,108 +901,128 @@ function applySelection(){
   refreshChips();
   CIVS.forEach(c=>{
     const lane = document.getElementById('lane-'+c.id);
-    if(lane) lane.classList.toggle('hidden', !selected.has(c.id));
+    if(!lane) return;
+    const wasHidden = lane.classList.contains('hidden');
+    const hide = !selected.has(c.id);
+    lane.classList.toggle('hidden', hide);
+    if(wasHidden && !hide){ lane.classList.remove('pop'); void lane.offsetWidth; lane.classList.add('pop'); }
   });
   const n = selected.size;
   lanesEl.classList.toggle('focus', n>0 && n<=2);
   lanesEl.classList.toggle('overview', n>2);
   lanesEl.classList.toggle('solo', n===1);
-  // card widths/heights changed with the mode → re-pack then reveal
-  requestAnimationFrame(()=>{ resolveCollisions(); checkReveal(); });
+  requestAnimationFrame(()=>{ resolveCollisions(); checkReveal(); updateEra(); });
 }
+lanesEl.addEventListener('animationend', e=>{ if(e.target.classList.contains('pop')) e.target.classList.remove('pop'); });
 
-/* ---------------- Build ruler ---------------- */
+/* ---------------- Ruler ---------------- */
 function buildRuler(){
   rulerInner.innerHTML='';
   rulerInner.style.height = totalHeight()+'px';
-  // major every 1000, minor every 500
   for(let y=T_MIN; y<=T_MAX; y+=500){
     const major = (y%1000===0);
-    const t=document.createElement('div');
-    t.className='tick'+(major?' major':'');
+    const t=el('div','tick'+(major?' major':''));
     t.style.top = yPos(y)+'px';
-    if(major){
-      const lbl=document.createElement('div');
-      lbl.className='t-lbl';
-      lbl.textContent = fmtYear(y);
-      t.appendChild(lbl);
-    }
+    if(major) t.appendChild(el('div','t-lbl',fmtYear(y)));
     rulerInner.appendChild(t);
   }
-  const now=document.createElement('div');
-  now.id='nowline'; now.style.top=yPos(2025)+'px';
-  now.innerHTML='<div class="t-lbl">today</div>';
+  const now=el('div'); now.id='nowline'; now.style.top=yPos(T_MAX)+'px';
+  now.appendChild(el('div','t-lbl','today'));
   rulerInner.appendChild(now);
 }
 
-/* ---------------- Build lanes ---------------- */
+/* ---------------- Lanes ---------------- */
+function fillMedia(card, im, alt){
+  let media=card.querySelector('.ev-media'), cap=card.querySelector('.ev-cap');
+  if(!im){ if(media) media.remove(); if(cap) cap.remove(); return; }
+  if(!media){
+    media=el('div','ev-media');
+    const img=el('img','ev-img'); img.alt=alt; img.loading='lazy'; img.decoding='async';
+    media.appendChild(img); card.appendChild(media);
+    cap=el('div','ev-cap'); card.appendChild(cap);
+  }
+  media.firstChild.src=im.src;
+  if(cap) cap.textContent=caption(im);
+}
+
 function buildLanes(){
   lanesEl.innerHTML='';
-  CIVS.forEach(c=>{
-    const lane=document.createElement('div');
-    lane.className='lane'; lane.id='lane-'+c.id;
+  CIVS.forEach((c,ci)=>{
+    const lane=el('div','lane'); lane.id='lane-'+c.id;
+    lane.style.setProperty('--i', ci);
+    lane.style.setProperty('--c', c.color);
+    lane.style.setProperty('--hl', hex(c.color,.55));
 
-    const head=document.createElement('div');
-    head.className='lane-head';
-    head.innerHTML=`
-      ${c.art?`<div class="art" style="background-image:url('${c.art}')"></div>`:''}
-      <div class="veil"></div>
-      <div class="accent" style="background:${c.color}"></div>
-      <div class="nm" style="color:${c.color}">${c.name}</div>
-      <div class="rg">${c.region}</div>`;
+    const head=el('div','lane-head');
+    head.tabIndex=0; head.setAttribute('role','button');
+    head.setAttribute('aria-label','Read the story of '+c.name);
+    if(banner(c)){ const art=el('div','art'); art.style.backgroundImage=`url('${banner(c)}')`; head.appendChild(art); }
+    head.appendChild(el('div','veil'));
+    const acc=el('div','accent'); acc.style.background=c.color; head.appendChild(acc);
+    const nm=el('div','nm',c.name); nm.style.color=c.color; head.appendChild(nm);
+    head.appendChild(el('div','rg',c.region));
+    const si=el('span','story-i','i'); si.style.color=c.color; si.setAttribute('aria-hidden','true'); head.appendChild(si);
+    head.addEventListener('click',()=>openCivDrawer(c));
+    head.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openCivDrawer(c); } });
     lane.appendChild(head);
 
-    const body=document.createElement('div');
-    body.className='lane-body';
+    const body=el('div','lane-body');
     body.style.height=totalHeight()+'px';
+    body.appendChild(el('div','spine'));
 
-    const spine=document.createElement('div');
-    spine.className='spine'; body.appendChild(spine);
-
-    // periods — slim colored rail + wrapping label (no hollow boxes)
+    // periods
     c.periods.forEach((p,i)=>{
       const s=Math.max(p.s,T_MIN), e=Math.min(p.e,T_MAX);
       const h=yPos(e)-yPos(s);
-      const band=document.createElement('div');
-      band.className='period';
+      const band=el('div','period');
       band.style.top=yPos(s)+'px';
       band.style.height=h+'px';
       band.style.background=`linear-gradient(90deg, ${hex(c.color,.10)}, ${hex(c.color,.02)} 45%, transparent)`;
-      band.innerHTML=`<div class="p-rail" style="background:${hex(c.color, i%2?0.55:0.85)}"></div>`+
-                     `<div class="p-lbl" style="display:${h<24?'none':''}">${p.name}</div>`;
+      const rail=el('div','p-rail'); rail.style.background=hex(c.color, i%2?0.55:0.85);
+      const lbl=el('div','p-lbl',p.name); if(h<24) lbl.hidden=true;
+      band.append(rail,lbl);
       body.appendChild(band);
     });
 
+    // "How it began" card, pinned at the civilization's first year
+    const ow=el('div','event origin-wrap'); ow.style.top=yPos(c.start)+'px';
+    const oc=el('div','ev-card origin-card');
+    oc.setAttribute('role','button'); oc.tabIndex=0;
+    const ol=el('div','o-lbl','How it began'); ol.style.color=c.color;
+    const oy=el('div','ev-yr',fmtYear(c.start)); oy.style.color=c.color;
+    oc.append(ol, oy, el('div','o-txt',c.origin), el('div','ev-more','Read the full story →'));
+    if(banner(c)) fillMedia(oc,{src:banner(c)},'');
+    if(oc.querySelector('.ev-cap')) oc.querySelector('.ev-cap').remove();
+    oc.addEventListener('click',()=>openCivDrawer(c));
+    oc.addEventListener('keydown',e=>{ if(e.key==='Enter'){ openCivDrawer(c); } });
+    ow.appendChild(oc);
+    body.appendChild(ow);
+
     // events
     c.events.forEach((ev,i)=>{
-      ev._img = eventArt(c.id, i);   // dedicated AI art for this event
-      const wrap=document.createElement('div');
-      wrap.className='event'; wrap.style.top=yPos(ev.y)+'px';
+      ev._i=i;
+      const wrap=el('div','event'); wrap.style.top=yPos(ev.y)+'px';
 
-      const dot=document.createElement('div');
-      dot.className='ev-dot';
-      dot.style.background=c.color;
+      const dot=el('div','ev-dot');
+      dot.style.background=c.color; dot.style.color=c.color;
       dot.style.boxShadow=`0 0 12px ${hex(c.color,.7)}`;
+      dot.style.setProperty('--d', (Math.random()*3.6).toFixed(2)+'s');
       dot.addEventListener('mouseenter',e=>showTip(e,ev,c));
-      dot.addEventListener('mousemove',e=>moveTip(e));
+      dot.addEventListener('mousemove',moveTip);
       dot.addEventListener('mouseleave',hideTip);
       dot.addEventListener('click',()=>openDrawer(ev,c));
       wrap.appendChild(dot);
 
-      const card=document.createElement('div');
-      card.className='ev-card';
-      card.dataset.wiki=ev.wiki;
-      card.dataset.evart=ev._img||'';
-      card.dataset.art=c.art||'';
-      card.innerHTML=`
-        <div class="ev-yr" style="color:${c.color}">${fmtYear(ev.y)}</div>
-        <div class="ev-ttl">${ev.t}</div>
-        <div class="ev-desc">${ev.d}</div>
-        <img class="ev-img" alt="${ev.t}">
-        <div class="ev-cap"></div>`;
+      const card=el('div','ev-card');
+      card.setAttribute('role','button'); card.tabIndex=0;
+      const yr=el('div','ev-yr',fmtYear(ev.y)); yr.style.color=c.color;
+      card.append(yr, el('div','ev-ttl',ev.t), el('div','ev-desc',ev.d));
+      if(ev.more) card.appendChild(el('div','ev-more','Read more →'));
+      fillMedia(card, eventImage(ev,c), ev.t);
       card.addEventListener('click',()=>openDrawer(ev,c));
+      card.addEventListener('keydown',e=>{ if(e.key==='Enter') openDrawer(ev,c); });
+      ev._card=card;
       wrap.appendChild(card);
-
       body.appendChild(wrap);
     });
 
@@ -829,54 +1031,13 @@ function buildLanes(){
   });
 }
 
-function hex(c,a){ // #rrggbb + alpha -> rgba
-  const n=parseInt(c.slice(1),16);
-  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
-}
-
-/* ---------------- Reveal + lazy images ---------------- */
+/* Cards are always visible; as each one comes into view it plays a short entrance. */
 function checkReveal(){
   const vh=window.innerHeight;
-  document.querySelectorAll('.ev-card').forEach(card=>{
-    if(card.classList.contains('in')) { maybeImg(card); return; }
+  document.querySelectorAll('.lane:not(.hidden) .ev-card:not(.seen)').forEach(card=>{
     const r=card.getBoundingClientRect();
-    if(r.top<vh-40 && r.bottom>90){ card.classList.add('in'); maybeImg(card); }
+    if(r.top<vh-30 && r.bottom>60) card.classList.add('seen');
   });
-}
-function maybeImg(card){
-  const img=card.querySelector('.ev-img');
-  if(img.dataset.loaded) return;
-  img.dataset.loaded='1';
-  const cap=card.querySelector('.ev-cap');
-  const art=card.dataset.evart || card.dataset.art;
-  const useArt=()=>{ if(art){ img.src=art; img.classList.add('show');
-    cap.innerHTML='AI-generated impression'; cap.classList.add('show'); } };
-  if(!imagesOn){ useArt(); return; }   // pure AI-art mode
-  loadImage(card.dataset.wiki).then(res=>{
-    if(res && res.src){
-      img.src=res.src; img.classList.add('show');
-      cap.innerHTML='via Wikimedia Commons'; cap.classList.add('show');
-    } else { useArt(); }
-  }).catch(useArt);
-}
-
-async function loadImage(title){
-  if(imgCache.has(title)) return imgCache.get(title);
-  const p=(async()=>{
-    try{
-      const url=`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*`+
-                `&prop=pageimages&piprop=thumbnail|original&pithumbsize=600&titles=${encodeURIComponent(title)}`;
-      const r=await fetch(url);
-      const j=await r.json();
-      const pages=j.query&&j.query.pages;
-      const pg=pages&&Object.values(pages)[0];
-      const src=pg&&(pg.thumbnail&&pg.thumbnail.source);
-      const orig=pg&&(pg.original&&pg.original.source);
-      return src?{src,orig:orig||src}:null;
-    }catch(e){ return null; }
-  })();
-  imgCache.set(title,p);
-  return p;
 }
 
 /* ---------------- Tooltip (overview) ---------------- */
@@ -894,94 +1055,122 @@ function moveTip(e){
 }
 function hideTip(){ tip.style.opacity=0; }
 
-/* ---------------- Detail drawer ---------------- */
-const drawer=document.getElementById('drawer');
-function openDrawer(ev,c){
-  drawer.classList.add('open');
-  document.getElementById('dCiv').textContent=c.name+' · '+c.region;
-  document.getElementById('dCiv').style.color=c.color;
-  document.getElementById('dYr').textContent=fmtYear(ev.y);
-  document.getElementById('dYr').style.color=c.color;
-  document.getElementById('dTtl').textContent=ev.t;
-  document.getElementById('dDesc').textContent=ev.d;
-  const dImg=document.getElementById('dImg'), dLoad=document.getElementById('dLoad'), dCap=document.getElementById('dCap');
-  dImg.style.display='none'; dCap.textContent='';
-  if(imagesOn){
-    dLoad.style.display='block';
-    const art = ev._img || c.art;
-    const showArt=()=>{
-      if(art){ dImg.src=art; dImg.style.display='block';
-        dCap.innerHTML=`AI-generated impression · <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(ev.wiki)}" target="_blank" rel="noopener">read on Wikipedia</a>`;
-      } else {
-        dCap.innerHTML=`No image found · <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(ev.wiki)}" target="_blank" rel="noopener">read on Wikipedia</a>`;
-      }
-    };
-    loadImage(ev.wiki).then(res=>{
-      dLoad.style.display='none';
-      if(res&&res.src){
-        dImg.src=res.src; dImg.style.display='block';
-        dCap.innerHTML=`Image: <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(ev.wiki)}" target="_blank" rel="noopener">${ev.wiki.replace(/_/g,' ')}</a> · Wikimedia Commons`;
-      } else { showArt(); }
-    }).catch(()=>{ dLoad.style.display='none'; showArt(); });
-  } else {
-    dLoad.style.display='none';
-    const art=ev._img||c.art;
-    if(art){ dImg.src=art; dImg.style.display='block'; }
-    dCap.innerHTML=`AI-generated impression · <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(ev.wiki)}" target="_blank" rel="noopener">read on Wikipedia</a>`;
-  }
+/* ---------------- Drawer: an event, or a whole civilization's story ---------------- */
+const drawer=document.getElementById('drawer'), dBody=document.getElementById('dBody');
+function setHead(kicker, color, big, title){
+  const k=document.getElementById('dCiv'); k.textContent=kicker; k.style.color=color;
+  const y=document.getElementById('dYr'); y.textContent=big; y.style.color=color;
+  document.getElementById('dTtl').textContent=title;
 }
-document.getElementById('dClose').onclick=()=>drawer.classList.remove('open');
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') drawer.classList.remove('open'); });
+function showDrawer(){
+  drawer.classList.remove('open'); void drawer.offsetWidth;   // restart the content stagger
+  drawer.classList.add('open'); drawer.setAttribute('aria-hidden','false');
+  dBody.scrollTop=0;
+  document.getElementById('dClose').focus({preventScroll:true});
+}
+function closeDrawer(){ drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); }
+function drawerImage(src, cap, alt){
+  if(!src) return;
+  const img=el('img','d-img'); img.src=src; img.alt=alt||'';
+  dBody.append(img, el('div','d-cap',cap));
+}
+function openDrawer(ev,c){
+  setHead(c.name+' · '+c.region, c.color, fmtYear(ev.y), ev.t);
+  dBody.innerHTML='';
+  const im=eventImage(ev,c);
+  if(im) drawerImage(im.src, caption(im), ev.t);
+  const txt=el('div','d-text');
+  txt.appendChild(el('p',null,ev.d));
+  if(ev.more) txt.appendChild(el('p',null,ev.more));
+  dBody.appendChild(txt);
+  const a=el('a','d-link','Read about this on Wikipedia →'); a.href=wikiUrl(im&&im.photo?im.cr.p:ev.wiki);
+  a.target='_blank'; a.rel='noopener'; dBody.appendChild(a);
+  showDrawer();
+}
+function openCivDrawer(c){
+  const last=Math.max(...c.periods.map(p=>p.e));
+  setHead(c.region, c.color, fmtYear(c.start)+' – '+(last>=T_MAX?'today':fmtYear(last)), c.name);
+  dBody.innerHTML='';
+  drawerImage(banner(c), 'AI-generated impression', c.name);
+  const txt=el('div','d-text');
+  [['How it began',c.origin],['The land',c.land],['Golden age',c.peak],['Decline and after',c.fall],['Legacy',c.legacy]]
+    .forEach(([h,p])=>{ if(p){ txt.appendChild(el('h3',null,h)); txt.appendChild(el('p',null,p)); } });
+  dBody.appendChild(txt);
+  const h=el('div','d-text'); h.appendChild(el('h3',null,'Key moments')); dBody.appendChild(h);
+  const ul=el('ul','moments');
+  [...c.events].sort((a,b)=>a.y-b.y).forEach(ev=>{
+    const li=el('li'), b=el('button');
+    const y=el('span','m-yr',fmtYear(ev.y)); y.style.color=c.color;
+    b.append(y, el('span',null,ev.t));
+    b.addEventListener('click',()=>{ openDrawer(ev,c); scrollToEvent(ev); });
+    li.appendChild(b); ul.appendChild(li);
+  });
+  dBody.appendChild(ul);
+  showDrawer();
+}
+function scrollToEvent(ev){
+  if(!ev._card || ev._card.offsetParent===null) return;
+  const r=ev._card.getBoundingClientRect(), t=timeline.getBoundingClientRect();
+  timeline.scrollBy({top:r.top-t.top-topPad-40, left:0, behavior:REDUCE?'auto':'smooth'});
+}
+document.getElementById('dClose').onclick=closeDrawer;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDrawer(); });
 
-/* ---------------- Era readout ---------------- */
+/* ---------------- Era readout: the year eases toward the scroll position ---------------- */
 const eraYr=document.querySelector('#era .yr'), eraLbl=document.querySelector('#era .lbl');
+let eraShown=null, eraTarget=0, eraRaf=0;
 function updateEra(){
-  const centerY = timeline.scrollTop + timeline.clientHeight*0.42 - topPad;
-  const year = yearAt(centerY);
-  eraYr.textContent = fmtYear(year);
-  // find an active period among selected civs
+  eraTarget = yearAt(timeline.scrollTop + timeline.clientHeight*0.42 - topPad);
   let label='';
   for(const c of CIVS){
     if(!selected.has(c.id)) continue;
-    const p=c.periods.find(p=>year>=p.s&&year<=p.e);
+    const p=c.periods.find(p=>eraTarget>=p.s&&eraTarget<=p.e);
     if(p){ label=c.name+' · '+p.name; break; }
   }
   eraLbl.textContent = label || 'along the shared timeline';
+  if(REDUCE || eraShown===null){ eraShown=eraTarget; eraYr.textContent=fmtYear(eraShown); return; }
+  if(!eraRaf) eraRaf=requestAnimationFrame(tickEra);
+}
+function tickEra(){
+  eraShown += (eraTarget-eraShown)*0.2;
+  if(Math.abs(eraTarget-eraShown)<0.6) eraShown=eraTarget;
+  eraYr.textContent=fmtYear(eraShown);
+  eraRaf = eraShown===eraTarget ? 0 : requestAnimationFrame(tickEra);
 }
 
-/* ---------------- Scroll wiring ---------------- */
+/* ---------------- Scroll wiring (reveal, readout, banner parallax) ---------------- */
 let ticking=false;
 timeline.addEventListener('scroll',()=>{
-  if(!ticking){ requestAnimationFrame(()=>{ checkReveal(); updateEra(); ticking=false; }); ticking=true; }
-});
+  if(ticking) return; ticking=true;
+  requestAnimationFrame(()=>{
+    checkReveal(); updateEra();
+    if(!REDUCE) lanesEl.style.setProperty('--par', (Math.sin(timeline.scrollTop/700)*10).toFixed(1)+'px');
+    ticking=false;
+  });
+},{passive:true});
 
-/* ---------------- Zoom ---------------- */
+/* ---------------- Zoom and spacing ---------------- */
 const zoomEl=document.getElementById('zoom');
-zoomEl.addEventListener('input',()=>{
+function keepCenter(change){
   const centerYear = yearAt(timeline.scrollTop + timeline.clientHeight/2 - topPad);
-  scaleMul=parseFloat(zoomEl.value);
+  change();
   rebuildGeometry();
   timeline.scrollTop = yPos(centerYear) - timeline.clientHeight/2 + topPad;
   checkReveal(); updateEra();
-});
-
-// Even ↔ Proportional spacing toggle
-document.getElementById('spaceBtn').addEventListener('click',()=>{
-  const centerYear = yearAt(timeline.scrollTop + timeline.clientHeight/2 - topPad);
+}
+zoomEl.addEventListener('input',()=>keepCenter(()=>{ scaleMul=parseFloat(zoomEl.value); }));
+document.getElementById('spaceBtn').addEventListener('click',()=>keepCenter(()=>{
   evenMode=!evenMode;
   document.getElementById('spaceBtn').textContent = evenMode ? 'Even spacing' : 'By years';
   buildScale();
-  rebuildGeometry();
-  timeline.scrollTop = yPos(centerYear) - timeline.clientHeight/2 + topPad;
-  checkReveal(); updateEra();
-});
+}));
 
 function rebuildGeometry(){
   buildRuler();
   const h=totalHeight()+'px';
   document.querySelectorAll('.lane-body').forEach(b=>b.style.height=h);
   CIVS.forEach(c=>{
-    const lane=document.getElementById('lane-'+c.id); if(!lane)return;
+    const lane=document.getElementById('lane-'+c.id); if(!lane) return;
     const body=lane.querySelector('.lane-body');
     const bands=body.querySelectorAll('.period');
     c.periods.forEach((p,i)=>{
@@ -989,16 +1178,17 @@ function rebuildGeometry(){
       const bh=yPos(e)-yPos(s);
       bands[i].style.top=yPos(s)+'px';
       bands[i].style.height=bh+'px';
-      const lbl=bands[i].querySelector('.p-lbl'); if(lbl) lbl.style.display = bh<24?'none':'';
+      const lbl=bands[i].querySelector('.p-lbl'); if(lbl) lbl.hidden = bh<24;
     });
-    const evs=body.querySelectorAll('.event');
+    body.querySelector('.origin-wrap').style.top=yPos(c.start)+'px';
+    const evs=body.querySelectorAll('.event:not(.origin-wrap)');
     c.events.forEach((ev,i)=>{ evs[i].style.top=yPos(ev.y)+'px'; });
   });
   requestAnimationFrame(resolveCollisions);
 }
 
-/* ---------------- Collision packing (residual same-time overlaps) ----------------
-   Cards that would overlap in a lane are pushed down off their true date, with a
+/* ---------------- Collision packing ----------------
+   Cards that would overlap in a lane slide down off their true date, with a
    connector back to the dot (which stays on the real year). */
 function resolveCollisions(){
   const GAP=8;
@@ -1017,7 +1207,7 @@ function resolveCollisions(){
       card.style.transform = shift>0 ? `translateY(${shift}px)` : '';
       let conn=wrap.querySelector('.ev-conn');
       if(shift>4){
-        if(!conn){ conn=document.createElement('div'); conn.className='ev-conn'; wrap.insertBefore(conn, wrap.firstChild); }
+        if(!conn){ conn=el('div','ev-conn'); wrap.insertBefore(conn, wrap.firstChild); }
         conn.style.height=shift+'px'; conn.style.display='block';
       } else if(conn){ conn.style.display='none'; }
       prevBottom = natTop + shift + hgt;
@@ -1025,21 +1215,17 @@ function resolveCollisions(){
   });
 }
 
-/* ---------------- Images toggle ---------------- */
+/* ---------------- Photos / AI art toggle ---------------- */
 document.getElementById('imgToggle').addEventListener('change',e=>{
-  imagesOn=e.target.checked;
-  // reset loaded state so images re-resolve under the new mode
-  document.querySelectorAll('.ev-card .ev-img').forEach(img=>{
-    img.classList.remove('show'); img.removeAttribute('data-loaded'); img.removeAttribute('src');
-    const cap=img.parentElement.querySelector('.ev-cap'); if(cap){cap.classList.remove('show');cap.innerHTML='';}
-  });
-  checkReveal();
+  photosOn=e.target.checked;
+  CIVS.forEach(c=>c.events.forEach(ev=>{ if(ev._card) fillMedia(ev._card, eventImage(ev,c), ev.t); }));
+  requestAnimationFrame(resolveCollisions);
 });
 
-/* ---------------- Animated golden-dust background ---------------- */
+/* ---------------- Gold dust background ---------------- */
 (function(){
   const cv=document.getElementById('bg'), ctx=cv.getContext('2d');
-  let W,H,parts=[];
+  let W,H,parts=[],scrollP=0;
   function resize(){ W=cv.width=innerWidth; H=cv.height=innerHeight;
     const n=Math.min(150, Math.floor(W*H/12000));
     parts=Array.from({length:n},()=>({
@@ -1048,39 +1234,51 @@ document.getElementById('imgToggle').addEventListener('change',e=>{
       a:Math.random()*0.5+0.1, drift:(Math.random()-0.5)*0.15
     }));
   }
-  let scrollP=0;
   timeline.addEventListener('scroll',()=>{ scrollP=timeline.scrollTop; },{passive:true});
   function draw(){
     ctx.clearRect(0,0,W,H);
     const off=(scrollP*0.03)%H;
     for(const p of parts){
-      p.y-=p.s; p.x+=p.drift;
+      if(!REDUCE){ p.y-=p.s; p.x+=p.drift; }
       if(p.y<-5) p.y=H+5;
       if(p.x<-5)p.x=W+5; if(p.x>W+5)p.x=-5;
       let yy=(p.y-off); yy=((yy%H)+H)%H;
-      ctx.beginPath();
-      ctx.arc(p.x,yy,p.r,0,6.283);
-      ctx.fillStyle=`rgba(232,192,90,${p.a})`;
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x,yy,p.r,0,6.283);
+      ctx.fillStyle=`rgba(232,192,90,${p.a})`; ctx.fill();
     }
-    requestAnimationFrame(draw);
+    if(!REDUCE) requestAnimationFrame(draw);
   }
-  addEventListener('resize',resize); resize(); draw();
+  addEventListener('resize',()=>{ resize(); if(REDUCE) draw(); }); resize(); draw();
 })();
 
-/* ---------------- Intro ---------------- */
-document.getElementById('enterBtn').onclick=()=>{
-  document.getElementById('intro').classList.add('gone');
-  setTimeout(()=>{ layout(); checkReveal(); updateEra(); }, 200);
-};
-
-/* ---------------- Init ---------------- */
+/* ---------------- Collapse filters ---------------- */
 document.getElementById('collapseBtn').addEventListener('click', ()=>{
   const hidden = document.body.classList.toggle('controls-hidden');
   document.getElementById('collapseBtn').textContent = hidden ? 'Filters ▼' : 'Hide filters ▲';
   layout(); updateEra(); requestAnimationFrame(checkReveal);
 });
 
+/* ---------------- Intro: title assembles, then the lanes flow in ---------------- */
+const intro=document.getElementById('intro');
+(function(){
+  const h=document.getElementById('introTitle');
+  const text=h.textContent; h.textContent='';
+  [...text].forEach((ch,k)=>{ const s=el('span',null,ch===' '?' ':ch); s.style.setProperty('--k',k); h.appendChild(s); });
+})();
+let entered=false;
+function enter(){
+  if(entered) return; entered=true;
+  intro.classList.add('gone');
+  if(!REDUCE){
+    document.body.classList.add('entering');
+    setTimeout(()=>document.body.classList.remove('entering'), 2800);
+  }
+  setTimeout(()=>{ layout(); resolveCollisions(); checkReveal(); updateEra(); }, 60);
+}
+intro.addEventListener('click', enter);
+document.addEventListener('keydown', e=>{ if(!entered && (e.key==='Enter'||e.key===' '||e.key==='Escape')) enter(); });
+
+/* ---------------- Init ---------------- */
 layout();
 buildScale();
 buildRuler();
@@ -1088,7 +1286,8 @@ buildLanes();
 applySelection();
 updateEra();
 requestAnimationFrame(resolveCollisions);
-setTimeout(()=>{ resolveCollisions(); checkReveal(); },300);
+setTimeout(()=>{ resolveCollisions(); checkReveal(); }, 300);
+if(REDUCE) enter(); else setTimeout(enter, 2600);
 let rz;
 window.addEventListener('resize',()=>{ layout(); updateEra(); clearTimeout(rz); rz=setTimeout(()=>{ resolveCollisions(); checkReveal(); },140); });
 window.addEventListener('orientationchange',()=>{ setTimeout(()=>{ layout(); updateEra(); resolveCollisions(); checkReveal(); },200); });
