@@ -1,0 +1,14 @@
+{
+ "ai_ok": 71,
+ "wiki_ok": 108,
+ "bytes": 15078104,
+ "no_image": [
+  "2008_Summer_Olympics",
+  "2004_Summer_Olympics",
+  "Safavid_dynasty",
+  "Classic_Maya_collapse"
+ ],
+ "failed": [
+  "wiki Gupta_Empire: Decompressed Data Too Large"
+ ]
+}
